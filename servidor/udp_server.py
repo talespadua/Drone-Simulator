@@ -1,8 +1,8 @@
 import socket
 import sys
-import configparser
+import ConfigParser
 
-config = configparser.RawConfigParser()
+config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
 
 HOST = config.get('settings', 'host')   # Symbolic name meaning all available interfaces

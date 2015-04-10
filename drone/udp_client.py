@@ -1,9 +1,9 @@
 import socket   #for sockets
 import sys  #for exit
  
-import configparser
+import ConfigParser
 
-config = configparser.RawConfigParser()
+config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
 
 # create dgram udp socket
