@@ -1,55 +1,54 @@
 from random import random, randint
-from fpformat import fix
+
+class ponto:
+	def __init__(self, x, y, z):
+		self.x = x
+		self.y = y
+		self.z = z
+
+class drone:
+	def __init__(self, x, y, z):
+		self.x = x
+		self.y = y
+		self.z = z
+		self.bsRaio = 5
+		self.mapa = list()
+		self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
+		self.zoom = 1
+		#self.estado = 1
+
+	def moveBy(self, x, y, z):
+		self.x += x
+		self.y += y
+		self.z += z
+
+class mapa:
+	def __init__(self, hMin, hMax, larg, comp):
+		self.mapa = list()
+
+		for x in range(larg):
+			self.mapa.append(list())
+
+			for z in range(comp):
+				self.mapa[x].append(randint(hMin, hMax))
+
+
+
 
 #mapa(TEMP)
-hMin = 0
-hMax = 5
-
-mapa = list()
-
-for x in range(100):
-	mapa.append(list())
-
-	for z in range(100):
-		r = 0 #random() * hMax\
-		mapa[x].append(r)
-
-		#print mapa[x][z]
+mapaLarg = 50
+mapaComp = 50
+mapa = mapa(0, 10, mapaLarg, mapaComp)
 
 #drone(DEF)
-droneBSRaio = 5
-droneTPAlt = -3
-#droneDiscoAlt = 
-#droneDiscoRaio = 
+drone = drone(randint(0, 99), randint(0, 99), randint(0, 99))
 
-droneEstado = 1
-droneMapa = list()
+print "DronePos = %d %d %d" %(drone.x, drone.y, drone.z)
 
-droneX = float(randint(1, 100))
-droneZ = float(randint(1, 100))
-droneY = float(35)
-
-dronePernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-
-print "DronePos = %d %d %d" %(droneX, droneY, droneZ)
-
-droneVel = list()
-
-testDestino = [randint(0, 100), randint(0, 100), randint(0, 100)]
+testDestino = [randint(0, 99), randint(0, 10), randint(0, 99)]
 
 print "Destino: %d %d %d" %(testDestino[0], testDestino[1], testDestino[2])
 
-tempoMov = 25
+drone.moveBy(testDestino[0] - drone.x, testDestino[1] - drone.y, testDestino[2] - drone.z)
 
-droneVel.append((testDestino[0] - droneX) / tempoMov)
-droneVel.append((testDestino[1] - droneY + 3) / tempoMov)
-droneVel.append((testDestino[2] - droneZ) / tempoMov)
-
-print "Vel: %.2f %.2f %.2f" %(droneVel[0], droneVel[1], droneVel[2])
-
-for i in range(tempoMov):
-	droneX = droneX + droneVel[0]
-	droneY = droneY + droneVel[1]
-	droneZ = droneZ + droneVel[2]
-
-	print "Pos em t = %d: %.2f %.2f %.2f" %(i + 1, droneX, droneY, droneZ)
+print "DronePos = %d %d %d" %(drone.x, drone.y, drone.z)
