@@ -1,9 +1,9 @@
 import socket   #for sockets
 import sys  #for exit
  
-import ConfigParser
+import configparser
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('settings.cfg')
 
 # create dgram udp socket
@@ -16,15 +16,15 @@ except socket.error:
 host = config.get('settings', 'host')
 port = int(config.get('settings', 'port'));
  
-while(1) :
+while 1:
     msg = bytes(input('Enter message to send : '), encoding="UTF-8")
      
-    try :
+    try:
         #Set the whole string
         s.sendto(msg, (host, port))
          
         # receive data from client (data, addr)
-        d = s.recvfrom(1024)
+        d = s.recvfrom(512)
         reply = d[0]
         addr = d[1]
          
