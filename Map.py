@@ -28,8 +28,6 @@ class Map:
             if c is ' ':
                 if temp is "":
                     continue
-                if temp == 'XX':
-                    temp = "02"
                 self.map_array[i][j] = int(temp)
                 temp = ""
                 j = j+1
