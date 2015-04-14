@@ -3,6 +3,7 @@ import sys
 import configparser
 from bs4 import BeautifulSoup
 from Map import Map
+from payload import ServerPayload, PayloadProperties
 
 #Setting up config parser
 def get_config(config_file):
@@ -50,6 +51,15 @@ def begin_listening(socket, PORT):
             print("Size of message is: " + str(sys.getsizeof(data)))
             print("No data received for package in address " + str(addr))
             socket.sendto(bytes("No data received", encoding="UTF-8"), addr)
+            continue
+
+        if data == "payload":
+            params = PayloadProperties()
+            params.id = 1
+            params.zoom = 3
+            payload = ServerPayload(params)
+            payload.print_payload_size()
+            socket.sendto(payload.payload, addr)
             continue
 
         reply = 'OK...' + data[1:]
