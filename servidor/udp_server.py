@@ -1,6 +1,7 @@
 import socket
 import sys
 import configparser
+import numpy as np
 
 config = configparser.RawConfigParser()
 config.read('settings.cfg')
@@ -30,15 +31,21 @@ print('Socket bind complete')
 while 1:
     # receive data from client (data, addr)
     d = s.recvfrom(512)
-    data = d[0]
+    data = d[0].decode('utf-8')
     addr = d[1]
+
+    if not data:
+        print("Size of message is: " + str(sys.getsizeof(data)))
+        print("No data received for package in address " + str(addr))
+        s.sendto(bytes("No data received", encoding="UTF-8"), addr)
+        continue
      
-    if not data: 
-        break
-     
-    reply = 'OK...' + str(data)[1:]
-    
-    s.sendto(bytes(reply, encoding="UTF-8") , addr)
-    print('Message [' + addr[0] + ':' + str(addr[1])[1:] + '] - ' + str(data)[1:].strip())
+    reply = 'OK...' + data[1:]
+
+    print("payload was " + str(d))
+    print("Size of message is: " + str(sys.getsizeof(data)))
+
+    s.sendto(bytes(reply, encoding="UTF-8"), addr)
+    print('Message [' + addr[0] + ':' + str(addr[1])[1:] + '] - ' + data[1:].strip())
      
 s.close()

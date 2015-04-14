@@ -10,7 +10,7 @@ config.read('settings.cfg')
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 except socket.error:
-    print ('Failed to create socket')
+    print('Failed to create socket')
     sys.exit()
 
 host = config.get('settings', 'host')
@@ -28,8 +28,8 @@ while 1:
         reply = d[0]
         addr = d[1]
          
-        print ('Server reply : ' + str(reply)[1:])
+        print('Server reply : ' + str(reply)[1:])
      
     except socket.error as msg:
-        print ('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
+        print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
         sys.exit()
