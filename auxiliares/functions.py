@@ -1,34 +1,34 @@
 # Este método prepara uma matriz 15x15 dada a posição de um drone, e seu zoom. Ele devolve a matriz.
 def getArrayToDrone(sentX, sentZ, zoom):
-	baseX = sentX - 7*zoom;
-	baseZ = sentZ - 7*zoom;
+    baseX = sentX - 7*zoom;
+    baseZ = sentZ - 7*zoom;
 
-	gridSizeX = 50 #Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
-	gridSizeZ = 50
+    gridSizeX = 50 #Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
+    gridSizeZ = 50
 
-	returningArray[15][15]
-	for i in range(0, 15):
-		for j in range(0, 15):
-			validSlot = 1 # Se isto setar em 0, acessou um ponto inexistente na matriz
-			nextX = baseX + (zoom * i)
-			if nextX < 0:
-				validSlot = 0
-			if nextX > gridSizeX:
-				validSlot = 0
-			nextZ = baseZ + (zoom * i)
-			if nextZ < 0:
-				validSlot = 0
-			if nextZ > gridSizeZ:
-				validSlot = 0
+    returningArray[15][15]
+    for i in range(0, 15):
+    for j in range(0, 15):
+        validSlot = 1 # Se isto setar em 0, acessou um ponto inexistente na matriz
+            nextX = baseX + (zoom * i)
+            if nextX < 0:
+                validSlot = 0
+            if nextX > gridSizeX:
+                validSlot = 0
+            nextZ = baseZ + (zoom * i)
+            if nextZ < 0:
+                validSlot = 0
+            if nextZ > gridSizeZ:
+                validSlot = 0
 
 
-			if validSlot:
-				returningArray[i][j] = mapa[baseX + (zoom * i)][baseZ + (zoom * j)] # Mapa deve ser global
-			else:
-				returningArray[i][j] = 255
+            if validSlot:
+                returningArray[i][j] = mapa[baseX + (zoom * i)][baseZ + (zoom * j)] # Mapa deve ser global
+            else:
+                returningArray[i][j] = 255
    
-	print "Matrix generated"
-	return returningArray
+    print "Matrix generated"
+    return returningArray
 
 
 
