@@ -2,13 +2,22 @@ import socket
 import sys
 import configparser
 import numpy as np
+from bs4 import BeautifulSoup
 
 config = configparser.RawConfigParser()
 config.read('settings.cfg')
 
 HOST = config.get('settings', 'host')   # Symbolic name meaning all available interfaces
 PORT = int(config.get('settings', 'port')) # Arbitrary non-privileged port
- 
+#
+# with open('../mapas/DotaMap.xml', 'r') as map:
+try:
+    soup = BeautifulSoup(open('../mapas/DotaMap.xml'))
+except:
+    print("erro")
+
+
+print(soup)
 # Datagram (udp) socket
 try :
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
