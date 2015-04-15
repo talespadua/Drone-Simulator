@@ -1,19 +1,26 @@
 __author__ = 'tales.cpadua'
 import struct
 import sys
+import codecs
 
 class PayloadProperties():
     pass
 
-#Payload server -> client
+#Payload server -> drone
 class ServerPayload():
-    def __init__(self, params):
-        self.elements = ""
-        self.droneID = params.id
-        self.zoom = params.zoom
+    def __init__(self):
+        self.payload = bytearray(512)
         #Mapa de pontos
 
-        self.payload = struct.pack('BB', self.droneID, self.zoom)
+    def add_drone_id(self, id):
+        struct.pack_into('B', self.payload, 0, int(id))
+
+    def add_drone_zoom(self, zoom):
+        struct.pack_into('B', self.payload, 1, int(zoom))
+
+    def add_drone_map(self, map):
+        sherolero = bytearray(map, "utf-8")
+        struct.pack_into('32s', self.payload, 61, sherolero)
 
     def pack_payload(self):
         return bytes(self.elements)
@@ -22,14 +29,25 @@ class ServerPayload():
         print(sys.getsizeof(self.payload))
         print(struct.calcsize('BB'))
 
-#Payload client -> server
-class ClientPayload():
-    def __init__(self, params):
-        self.port = params.port
-        self.id = params.id
-        self.zoom = params.zoom
-        self.dx = params.dx
-        self.dy = params.dy
-        self.dz = params.dz
+    def print_payload(self, beg, end):
+        print(self.payload[beg:end])
 
-        self.payload = struct.pack('IBBiii')
+
+#Payload drone -> server
+class ClientPayload:
+    def __init__(self):
+        self.payload = bytearray(512)
+
+    def add_params(self, params):
+        self.payload = struct.pack_into('IBBiii',
+                                        self.payload,
+                                        0,
+                                        params.port,
+                                        params.id,
+                                        params.zoom,
+                                        params.dx,
+                                        params.dy,
+                                        params.dz)
+
+    def get_payload(self):
+        return self.payload

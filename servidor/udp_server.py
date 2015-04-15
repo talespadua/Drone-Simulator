@@ -4,7 +4,7 @@ import configparser
 from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
-import struct
+from drone.drone import Drone
 
 #Setting up config parser
 def get_config(config_file):
@@ -39,45 +39,26 @@ def bind_socket(socket, HOST, PORT):
         sys.exit()
     print('Socket bind complete')
 
-def create_payload(droneID, zoom, wind, map):
-    payload = bytearray(512)
-    view = memoryview(payload)
-    payload[1] = struct.pack('B',droneID)
-    print(payload[1:5])
-
-#keep talking with the client
+#keep talking with the drone
 def begin_listening(socket, PORT):
     print("Server is listening on port " + PORT.__str__() + "...")
     while 1:
-        # receive data from client (data, addr)
+        # receive data from drone (data, addr)
+        payload = ServerPayload()
         d = socket.recvfrom(512)
-        data = d[0].decode('utf-8')
+        data = d[0]
         addr = d[1]
 
-        if not data:
-            print("Size of message is: " + str(sys.getsizeof(data)))
-            print("No data received for package in address " + str(addr))
-            socket.sendto(bytes("No data received", encoding="UTF-8"), addr)
-            continue
+        print("The data received is: " + data)
 
-        if data == "payload":
-            create_payload(100, 0, 0, 0)
-            params = PayloadProperties()
-            params.id = 1
-            params.zoom = 3
-            payload = ServerPayload(params)
-            #payload.print_payload_size()
-            socket.sendto(payload.payload, addr)
-            continue
+        input("Press to continue")
 
-        reply = 'OK...' + data[1:]
-
-        print("payload was " + str(d))
-        print("Size of message is: " + str(sys.getsizeof(data)))
-
-        socket.sendto(bytes(reply, encoding="UTF-8"), addr)
-        print('Message [' + addr[0] + ':' + str(addr[1])[1:] + '] - ' + data[1:].strip())
-
+        payload.add_drone_id(10)
+        payload.add_drone_zoom(10)
+        payload.add_drone_map("sherolero")
+        #payload.print_payload(55, 80)
+        #payload.print_payload_size()
+        socket.sendto(payload.payload, addr)
 
 def main():
     config = get_config('settings.cfg')
