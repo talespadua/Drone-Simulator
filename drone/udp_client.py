@@ -30,7 +30,7 @@ def begin_streaming(s, HOST, PORT):
     params.dy = 0
     params.dz = 0
     payload = ClientPayload()
-    #payload.add_params(params)
+    payload.add_params(params)
 
     while 1:
         try:

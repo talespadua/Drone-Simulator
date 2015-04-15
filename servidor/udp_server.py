@@ -49,7 +49,7 @@ def begin_listening(socket, PORT):
         data = d[0]
         addr = d[1]
 
-        print("The data received is: " + data)
+        print("The data received is: " + str(data))
 
         input("Press to continue")
 
