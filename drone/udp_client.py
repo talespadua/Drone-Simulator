@@ -6,6 +6,9 @@ import configparser
 config = configparser.RawConfigParser()
 config.read('settings.cfg')
 
+HOST = config.get('settings', 'host')
+PORT = int(config.get('settings', 'port'));
+
 # create dgram udp socket
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -13,15 +16,18 @@ except socket.error:
     print('Failed to create socket')
     sys.exit()
 
-host = config.get('settings', 'host')
-port = int(config.get('settings', 'port'));
+# try:
+#     s.bind((HOST, PORT))
+# except socket.error as msg:
+#     print('Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+#     sys.exit()
  
 while 1:
     msg = bytes(input('Enter message to send : '), encoding="UTF-8")
      
     try:
         #Set the whole string
-        s.sendto(msg, (host, port))
+        s.sendto(msg, (HOST, PORT))
          
         # receive data from client (data, addr)
         d = s.recvfrom(512)
