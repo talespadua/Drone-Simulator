@@ -1,5 +1,4 @@
 from random import randint
-
 from payload import ClientPayload
 
 class Ponto:

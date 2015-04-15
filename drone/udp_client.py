@@ -3,13 +3,13 @@ import sys  #for exit
 
 import configparser
 
-from drone import Drone
+from drone.drone import Drone
 
 config = configparser.RawConfigParser()
 config.read('settings.cfg')
 
 HOST = config.get('settings', 'host')
-PORT = int(config.get('settings', 'port'));
+PORT = int(config.get('settings', 'port'))
 
 drone = Drone()
 drone.port = PORT

@@ -4,6 +4,7 @@ import configparser
 from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
+import struct
 
 #Setting up config parser
 def get_config(config_file):
@@ -38,6 +39,12 @@ def bind_socket(socket, HOST, PORT):
         sys.exit()
     print('Socket bind complete')
 
+def create_payload(droneID, zoom, wind, map):
+    payload = bytearray(512)
+    view = memoryview(payload)
+    payload[1] = struct.pack('B',droneID)
+    print(payload[1:5])
+
 #keep talking with the client
 def begin_listening(socket, PORT):
     print("Server is listening on port " + PORT.__str__() + "...")
@@ -54,11 +61,12 @@ def begin_listening(socket, PORT):
             continue
 
         if data == "payload":
+            create_payload(100, 0, 0, 0)
             params = PayloadProperties()
             params.id = 1
             params.zoom = 3
             payload = ServerPayload(params)
-            payload.print_payload_size()
+            #payload.print_payload_size()
             socket.sendto(payload.payload, addr)
             continue
 
