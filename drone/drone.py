@@ -1,54 +1,114 @@
-from random import random, randint
+from random import randint
 
-class ponto:
+from payload import ClientPayload
+
+class Ponto:
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
 
-class drone:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+class Drone:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+        self.dz = 0
         self.bsRaio = 5
         self.mapa = list()
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 1
-        #self.estado = 1
+        self.zoom = 10
+        self.port = 0
+        self.id = randint(0, 255)
+
+    # self.estado = 1gi
 
     def moveBy(self, x, y, z):
-        self.x += x
-        self.y += y
-        self.z += z
+        self.dx = x
+        self.dy = y
+        self.dz = z
 
-class mapa:
-    def __init__(self, hMin, hMax, larg, comp):
-        self.mapa = list()
+    def addPontos(self, pontos, zoom):
+        # x = 0, z = 14
+        #pontoAux = ponto[0][14]
+        setores = [list() * 9]
 
-        for x in range(larg):
-            self.mapa.append(list())
+        for x in range(15):
+            for z in range(15, 0):
+                if pontos[x][z] == 255:
+                    pontos[x][z] = -1
 
-            for z in range(comp):
-                self.mapa[x].append(randint(hMin, hMax))
+                p = Ponto((x - 7) * zoom + self.dx, pontos[x][z], (z - 7) * zoom + self.dz)
 
+                #define setor ao qual o ponto pertence
+                a = 2
+                b = 2
 
+                if x < 5:
+                    a = 0
+                elif x < 10:
+                    a = 1
 
+                if z >= 10:
+                    b = 0
+                elif z >= 5:
+                    b = 1
 
-#mapa(TEMP)
-mapaLarg = 50
-mapaComp = 50
-mapa = mapa(0, 10, mapaLarg, mapaComp)
+                setores[3 * b + a].append(p)
 
-#drone(DEF)
-drone = drone(randint(0, 99), randint(0, 99), randint(0, 99))
+        return setores
 
-print ("DronePos = %d %d %d" %(drone.x, drone.y, drone.z))
+    def chooseDirection(self, setores):
+        v1 = 0
+        v2 = 0
+        i = 0
+        choice = 0
+        cMed = 0
 
-testDestino = [randint(0, 99), randint(0, 10), randint(0, 99)]
+        # calc por variancia
+        for s in setores:
+            soma = 0
+            ptos = 0
 
-print ("Destino: %d %d %d" %(testDestino[0], testDestino[1], testDestino[2]))
+            for h in s:
+                if h >= 0:
+                    soma += h
+                    ptos += 1
 
-drone.moveBy(testDestino[0] - drone.x, testDestino[1] - drone.y, testDestino[2] - drone.z)
+            med = float(soma / ptos)
+            var = float(pow(soma - med * ptos, 2) / ptos)
 
-print ("DronePos = %d %d %d" %(drone.x, drone.y, drone.z))
+            if i == 0:
+                v1 = var
+                cMed = med
+            elif var < v1:
+                choice = i
+                cMed = med
+
+            i += 1
+
+        x = 5 * self.zoom
+        z = 5 * self.zoom
+
+        if choice in [3, 4, 5]:
+            z = 0
+        elif choice in [6, 7, 8]:
+            z = -z
+
+        if choice in [0, 3, 6]:
+            x = -x
+        elif choice in [1, 4, 7]:
+            x = 0
+
+        self.zoom -= 1
+
+        y = -(float((self.dy - cMed) / 10))
+
+        if self.zoom == 1:
+            y = - self.dy + cMed + 2
+
+        self.moveBy(x, y, z)
+
+        return self.sendPayload()
+
+    def sendPayload(self):
+        return ClientPayload(self)
