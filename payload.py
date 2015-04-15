@@ -5,11 +5,13 @@ import sys
 class PayloadProperties():
     pass
 
+#Payload server -> client
 class ServerPayload():
     def __init__(self, params):
         self.elements = ""
         self.droneID = params.id
         self.zoom = params.zoom
+        #Mapa de pontos
 
         self.payload = struct.pack('BB', self.droneID, self.zoom)
 
@@ -20,5 +22,14 @@ class ServerPayload():
         print(sys.getsizeof(self.payload))
         print(struct.calcsize('BB'))
 
+#Payload client -> server
 class ClientPayload():
-    pass
+    def __init__(self, params):
+        self.port = params.port
+        self.id = params.id
+        self.zoom = params.zoom
+        self.dx = params.dx
+        self.dy = params.dy
+        self.dz = params.dz
+
+        self.payload = struct.pack('IBBiii')
