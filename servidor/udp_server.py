@@ -101,7 +101,8 @@ def begin_listening(socket, PORT, map):
         z_pos = get_z_position_from_payload(data)
         islanded = get_islanded_from_payload(data)
 
-        print("zoom is :" + str(zoom)+" id is: "+str(id))
+        print("zoom is :" + str(zoom))
+        print("id is : "+str(id))
         print("Drone positions: ")
         print("x: " + str(x_pos))
         print("y: " + str(y_pos))
