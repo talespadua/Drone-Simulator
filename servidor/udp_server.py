@@ -6,6 +6,7 @@ from Map import Map
 from payload import ServerPayload, PayloadProperties
 import functions as f
 import struct
+from random import randint
 import numpy as np
 from drone.drone import Drone
 
@@ -83,9 +84,10 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = 20
-    oldY = 80
-    oldZ = 20
+    oldX = randint(0, map.x_size - 1)
+    oldY = 0
+    oldZ = randint(0, map.z_size - 1)
+
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
@@ -107,9 +109,12 @@ def begin_listening(socket, PORT, map):
         print("zoom is :" + str(zoom))
         print("id is : "+str(id))
         print("Drone positions: ")
-        print("x: " + str(x_pos))
-        print("y: " + str(y_pos))
-        print("z: " + str(z_pos))
+        print("x: " + str(oldX + x_pos))
+        print("y: " + str(oldY + y_pos))
+        print("z: " + str(oldZ + z_pos))
+
+
+
         print("Landed: " + str(islanded))
 
         colision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
@@ -122,9 +127,9 @@ def begin_listening(socket, PORT, map):
         if islanded:
             return 1
 
-        map_str = parse_drone_map_to_string(x_pos, z_pos, zoom, map)
+        map_str = parse_drone_map_to_string(oldX + x_pos, oldZ + z_pos, zoom, map)
 
-        payload.add_drone_id(10)
+        payload.add_drone_id(id)
         payload.add_drone_zoom(zoom)
 
         payload.add_drone_map(map_str)

@@ -91,6 +91,8 @@ def begin_streaming(s, HOST, PORT, drone):
 
             map_matrix = parse_map_from_server(map)
 
+            print(str(map_matrix))
+
             payload = ClientPayload()
 
             if drone.zoom > 1:

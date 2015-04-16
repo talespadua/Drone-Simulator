@@ -9,16 +9,13 @@ class Ponto:
 
 class Drone:
     def __init__(self):
-        self.dx = randint(10, 30)
+        self.dx = 0
         self.dy = 80
-        self.dz = randint(10, 30)
-
-        self.dx = 13
-        self.dz = 14
+        self.dz = 0
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 2
+        self.zoom = 5
 
         self.port = 0
         self.id = randint(0, 255)
@@ -33,9 +30,9 @@ class Drone:
         # self.pontoCentral = self.pontoInicial
 
     def moveBy(self, x, y, z):
-        self.dx -= x
-        self.dy -= y
-        self.dz -= z
+        self.dx = x
+        self.dy = y
+        self.dz = z
 
         print("%d %d %d" %(x, y, z))
 
@@ -75,36 +72,58 @@ class Drone:
         return setores
 
     def chooseDirection(self, setores):
-        v1 = 0
         i = 0
         choice = 0
         cMed = 0
+        cVar = 0
 
         # calc por variancia
         for s in setores:
             soma = 0
             ptos = 0
 
+            setorNeg = 0
+
             for h in s:
                 if h.y >= 0:
                     soma += h.y
                     ptos += 1
+                else:
+                    setorNeg = 1
+                    break
 
-            med = float(soma / ptos)
-            var = float(pow(soma - med * ptos, 2) / ptos)
+            if setorNeg == 0:
+                med = float(soma / ptos)
+
+                sVar = 0
+
+                for h in s:
+                    sVar += pow(h.y - med, 2)
+
+                var = float(sVar / ptos - 1)
 
 
-            if i == 0:
-                v1 = var
-                cMed = med
-            elif var < v1:
-                choice = i
-                cMed = med
+                if i == 0:
+                    cMed = med
+                    cVar = var
+                elif var < cVar:
+                    choice = i
+                    cMed = med
+                    cVar = var
 
-            i += 1
+                i += 1
 
         x = 5 * self.zoom
         z = 5 * self.zoom
+
+        print("%.2f %.2f" %(cMed, cVar))
+
+        #Caso a média seja muito alta
+        if cMed > 200 or cVar > 2:
+            self.moveBy(randint(-5, 5), 10, randint(-5, 5))
+            return self.sendPayload()
+
+        print("Setor: %d" %(choice))
 
         #Escolhe setor
         if choice in [3, 4, 5]:
@@ -128,6 +147,7 @@ class Drone:
         return self.sendPayload()
 
     def testePouso(self, pontos):
+        print("TestePouso")
         for x in range(-2, 3):
             for z in range(-2, 3):
                 y1 = pontos[9 + x][7 + z]
