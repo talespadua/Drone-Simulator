@@ -1,5 +1,6 @@
 import socket   #for sockets
 import sys  #for exit
+import struct
 
 import configparser
 from payload import ClientPayload, PayloadProperties
@@ -19,9 +20,22 @@ def create_socket():
         print('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
         sys.exit()
 
+def get_droneid_from_payload(payload):
+    id = struct.unpack('B', payload[0:1])[0]
+    return id
+
+def get_zoom_from_payload(payload):
+    zoom = struct.unpack('B', payload[1:2])[0]
+    return zoom
+
+def get_map_from_payload(payload):
+    map = struct.unpack('100s', payload[61:161])[0]
+    return map
+
 def begin_streaming(s, HOST, PORT):
 
-    input("Press any key to begin streaming")
+    #first request
+    input("Press ENTER to begin streaming")
     params = PayloadProperties()
     params.port = PORT
     params.id = 1
@@ -42,8 +56,17 @@ def begin_streaming(s, HOST, PORT):
             reply = d[0]
             addr = d[1]
 
-            print('Server reply : ' + str(reply)[1:])
+            id = get_droneid_from_payload(reply)
+            zoom = get_zoom_from_payload(reply)
+            map = get_map_from_payload(reply)
 
+            print("Server reply:")
+            print("Drone id: "+str(id))
+            print("Drone zoom: "+str(zoom))
+            print("Drone Map: "+str(map))
+
+
+            input("Press enter to sent next payload")
         except socket.error as msg:
             print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
             sys.exit()

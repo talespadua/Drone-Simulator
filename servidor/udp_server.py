@@ -91,8 +91,6 @@ def begin_listening(socket, PORT):
         print("y: " + str(y_pos))
         print("z: " + str(z_pos))
 
-        input("Press to continue")
-
         payload.add_drone_id(10)
         payload.add_drone_zoom(10)
         payload.add_drone_map("sherolero")
