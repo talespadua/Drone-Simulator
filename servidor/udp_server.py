@@ -109,7 +109,6 @@ def begin_listening(socket, PORT):
         payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)
         payload.add_drone_zoom(id)
-        payload.add_drone_map("sherolero")
 
         #payload.print_payload(55, 80)
         #payload.print_payload_size()

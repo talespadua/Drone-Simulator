@@ -30,6 +30,7 @@ def get_zoom_from_payload(payload):
 
 def get_map_from_payload(payload):
     map = struct.unpack('450s', payload[61:511])[0]
+    map = str(map)
     return map
 
 def parse_map_from_server(map):
@@ -49,6 +50,7 @@ def parse_map_from_server(map):
             else:
                 i = i+1
                 j = 0
+            index = index+1
 
     return map_matrix
 
@@ -77,7 +79,7 @@ def begin_streaming(s, HOST, PORT, drone):
 
             id = get_droneid_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
-            map = get_map_from_payload(reply)
+            map = get_map_from_payload(reply)[2:]
 
             print("Server reply:")
             print("Drone id: "+str(id))
@@ -88,11 +90,11 @@ def begin_streaming(s, HOST, PORT, drone):
 
             print(map_matrix)
 
-            if drone.zoom > 1:
-                setores = drone.addPontos(map)
-                payload.payload = drone.chooseDirection(setores)
-            else:
-                payload.payload = drone.testePouso(map)
+            # if drone.zoom > 1:
+            #     setores = drone.addPontos(map)
+            #     payload.payload = drone.chooseDirection(setores)
+            # else:
+            #     payload.payload = drone.testePouso(map)
 
             input("Press enter to sent next payload")
 
