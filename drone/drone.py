@@ -15,7 +15,7 @@ class Drone:
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 10
+        self.zoom = 5
 
         self.port = 0
         self.id = randint(0, 255)
