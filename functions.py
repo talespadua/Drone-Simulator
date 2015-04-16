@@ -16,15 +16,16 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
             nextX = baseX + (zoom * i)
             if nextX < 0:
                 validSlot = 0
-            if nextX > gridSizeX:
+            if nextX >= gridSizeX:
                 validSlot = 0
-            nextZ = baseZ + (zoom * i)
+            nextZ = baseZ + (zoom * j)
             if nextZ < 0:
                 validSlot = 0
-            if nextZ > gridSizeZ:
+            if nextZ >= gridSizeZ:
                 validSlot = 0
 
-            if validSlot:
+            if validSlot == 1:
+                print(baseX + (zoom * i), baseZ + (zoom * j))
                 returningArray.itemset((i, j), mapa.item(baseX + (zoom * i), baseZ + (zoom * j)))  # Mapa deve ser global
                 #info = 0
                 #y_pos = mapa[baseX + (zoom * i)][baseZ + (zoom * j)]  # Mapa deve ser global
@@ -38,38 +39,6 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
 # Este metodo verifica a colisão instanciando uma matriz temporária, traçando retas entre as bordas das areas dos circulos, e então rodando um grafo de busca à largura nele. Obs.: Pode demorar em casos grandes.
 # Retorna -1 em caso de colisão.
 # Retorna 1 em caso de sucesso.
-
-# O metodo da linha de Bresenham define as bordas reais entre os pontos. Isto seta distancia enter pontos numa matriz em 1, mesmo que a linha projetada possua um angulo incomum.
-def line(array, x0, y0, x1, y1):
-    x1 -= 1
-    y1 -= 1
-    x0 -= 1
-    y0 -= 1
-    "Bresenham's line algorithm"
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    x, y = x0, y0
-    sx = -1 if x0 > x1 else 1
-    sy = -1 if y0 > y1 else 1
-    if dx > dy:
-        err = dx / 2.0
-        while x != x1:
-            array.itemset((x, y), 1)
-            err -= dy
-            if err < 0:
-                y += sy
-                err += dx
-            x += sx
-    else:
-        err = dy / 2.0
-        while y != y1:
-            array.itemset((x, y), 1)
-            err -= dx
-            if err < 0:
-                x += sx
-                err += dy
-            y += sy
-    array.itemset((x, y), 1)
 
 def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     # O método constroi uma submatriz para tratamento posterior. Para isso, podemos diminuir o alcance corretamente
@@ -154,3 +123,36 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     print("Sem colisões neste movimento")
 
     return 1
+
+
+# O metodo da linha de Bresenham define as bordas reais entre os pontos. Isto seta distancia enter pontos numa matriz em 1, mesmo que a linha projetada possua um angulo incomum.
+def line(array, x0, y0, x1, y1):
+    x1 -= 1
+    y1 -= 1
+    x0 -= 1
+    y0 -= 1
+    "Bresenham's line algorithm"
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    sx = -1 if x0 > x1 else 1
+    sy = -1 if y0 > y1 else 1
+    if dx > dy:
+        err = dx / 2.0
+        while x != x1:
+            array.itemset((x, y), 1)
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+            x += sx
+    else:
+        err = dy / 2.0
+        while y != y1:
+            array.itemset((x, y), 1)
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+            y += sy
+    array.itemset((x, y), 1)
