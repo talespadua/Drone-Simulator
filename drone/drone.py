@@ -9,9 +9,9 @@ class Ponto:
 
 class Drone:
     def __init__(self):
-        self.dx = 0
+        self.dx = 10
         self.dy = 80
-        self.dz = 0
+        self.dz = 10
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
