@@ -46,6 +46,9 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
 
     gridSizeX = 150  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
     gridSizeZ = 150
+    if newX == previousX and newZ == previousZ:
+        print("Sem movimento")
+        return 1
 
     if previousX > newX:
         newArrayXStart = newX - 5

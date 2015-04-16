@@ -56,15 +56,16 @@ def get_zoom_from_payload(payload):
     return zoom
 
 def get_x_position_from_payload(payload):
-    x_pos = struct.unpack('I', payload[6:10])[0]
+    x_pos = struct.unpack('>i', payload[6:10])[0]
     return x_pos
 
 def get_y_position_from_payload(payload):
-    y_pos = struct.unpack('I', payload[10:14])[0]
+    y_pos = struct.unpack('>i', payload[10:14])[0]
     return y_pos
 
 def get_z_position_from_payload(payload):
-    z_pos = struct.unpack('I', payload[14:18])[0]
+    z_pos = struct.unpack('>i', payload[14:18])[0]
+    print("z = ", z_pos)
     return z_pos
 
 def get_islanded_from_payload(payload):
@@ -83,8 +84,8 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = 0
-    oldZ = 0
+    oldX = 10
+    oldZ = 10
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
@@ -112,6 +113,8 @@ def begin_listening(socket, PORT, map):
         print("Landed: " + str(islanded))
 
         colision = f.verifyCollision(oldX, oldZ, x_pos, y_pos, z_pos, map)
+        oldX = x_pos
+        oldZ = z_pos
 
         if colision == -1:
             return 0
