@@ -21,11 +21,11 @@ class Drone:
         self.id = randint(0, 255)
         # self.estado = 1
 
-        self.mapa = list()
-        self.pontoInicial = Ponto(0, 80, 0)
-        self.mapa[0].append(list())
-        self.mapa[0][0].append(self.pontoInicial)
-        self.pontoCentral = self.pontoInicial
+        # self.mapa = list()
+        # self.pontoInicial = Ponto(0, 80, 0)
+        # self.mapa[0].append(list())
+        # self.mapa[0][0].append(self.pontoInicial)
+        # self.pontoCentral = self.pontoInicial
 
     def moveBy(self, x, y, z):
         self.dx = x

@@ -34,7 +34,7 @@ def begin_streaming(s, HOST, PORT):
 
     while 1:
         try:
-            #Set the whole string
+            #Send payload
             s.sendto(payload.payload, (HOST, PORT))
 
             #Recebe Payload do server
