@@ -21,11 +21,11 @@ def create_socket():
         sys.exit()
 
 def get_droneid_from_payload(payload):
-    id = struct.unpack('B', payload[0:1])[0]
+    id = struct.unpack('B', payload[1:2])[0]
     return id
 
 def get_zoom_from_payload(payload):
-    zoom = struct.unpack('B', payload[1:2])[0]
+    zoom = struct.unpack('B', payload[0:1])[0]
     return zoom
 
 def get_map_from_payload(payload):
@@ -90,11 +90,13 @@ def begin_streaming(s, HOST, PORT, drone):
 
             map_matrix = parse_map_from_server(map)
 
-            # if drone.zoom > 1:
-            #     setores = drone.addPontos(map)
-            #     payload.payload = drone.chooseDirection(setores)
-            # else:
-            #     payload.payload = drone.testePouso(map)
+            payload = ClientPayload()
+
+            if drone.zoom > 1:
+                setores = drone.addPontos(map_matrix)
+                payload = drone.chooseDirection(setores)
+            else:
+                payload = drone.testePouso(map_matrix)
 
             input("Press enter to sent next payload")
 

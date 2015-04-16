@@ -83,8 +83,9 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = 10
-    oldZ = 10
+    oldX = 20
+    oldY = 80
+    oldZ = 20
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
@@ -111,9 +112,9 @@ def begin_listening(socket, PORT, map):
         print("z: " + str(z_pos))
         print("Landed: " + str(islanded))
 
-        colision = f.verifyCollision(oldX, oldZ, x_pos, y_pos, z_pos, map)
-        oldX = x_pos
-        oldZ = z_pos
+        colision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
+        oldX += x_pos
+        oldZ += z_pos
 
         if colision == -1:
             return 0

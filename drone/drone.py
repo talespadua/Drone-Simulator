@@ -1,5 +1,5 @@
 from random import randint
-from payload import ClientPayload
+from payload import ClientPayload, PayloadProperties
 
 class Ponto:
     def __init__(self, x, y, z):
@@ -34,16 +34,20 @@ class Drone:
         self.dy = y
         self.dz = z
 
+        print("%d %d %d" %(x, y, z))
+
         #Calcula diferença entre o proximo ponto e o ponto inicial
-        self.pontoCentral.x += x
-        self.pontoCentral.y += y
-        self.pontoCentral.z += z
+        # self.pontoCentral.x += x
+        # self.pontoCentral.y += y
+        # self.pontoCentral.z += z
 
     def addPontos(self, pontos):
-        setores = [list() * 9]
+        setores = list()
+        for i in range(9):
+            setores.append(list())
 
         for x in range(15):
-            for z in range(15, 0):
+            for z in range(15):
                 if pontos[x][z] == 255:
                     pontos[x][z] = -1
 
@@ -79,8 +83,8 @@ class Drone:
             ptos = 0
 
             for h in s:
-                if h >= 0:
-                    soma += h
+                if h.y >= 0:
+                    soma += h.y
                     ptos += 1
 
             med = float(soma / ptos)
@@ -111,10 +115,7 @@ class Drone:
 
         self.zoom -= 1
 
-        y = -(float((self.dy - cMed) / 10))
-
-        #if self.zoom == 1:
-        #    y = - self.dy + cMed + 2
+        y = -((self.dy - cMed) / 10)
 
         self.moveBy(x, y, z)
 
@@ -128,8 +129,8 @@ class Drone:
                 y3 = pontos[10 + x][10 + z]
 
                 if y1 == y2 and y2 == y3:
-                    self.moveBy(0, -self.cy + y1 + 2, 0)
-                    print("Pousou!")
+                    self.moveBy(0, -self.dy + y1 + 2, 0)
+                    self.islanding = True
                     return self.sendPayload()
 
         self.zoom -= 1
@@ -137,4 +138,14 @@ class Drone:
         return self.sendPayload()
 
     def sendPayload(self):
-        return ClientPayload(self)
+        params = PayloadProperties()
+        params.port = self.port
+        params.id = self.id
+        params.zoom = self.zoom
+        payload = ClientPayload()
+        payload.add_params(params)
+        payload.add_drone_xpos(self.dx)
+        payload.add_drone_ypos(self.dy)
+        payload.add_drone_zpos(self.dz)
+        payload.add_drone_land_info(self.islanding)
+        return payload

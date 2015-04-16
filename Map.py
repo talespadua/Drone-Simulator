@@ -42,5 +42,5 @@ class Map:
             for z in range(self.z_size):
                 print(self.map_array[x][z])
 
-    def item(self, x, y):
-        return self.map_array[x][y]
+    def item(self, x, z):
+        return self.map_array[x][z]
