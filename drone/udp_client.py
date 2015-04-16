@@ -89,8 +89,6 @@ def begin_streaming(s, HOST, PORT, drone):
 
             map_matrix = parse_map_from_server(map)
 
-            print(map_matrix)
-
             # if drone.zoom > 1:
             #     setores = drone.addPontos(map)
             #     payload.payload = drone.chooseDirection(setores)

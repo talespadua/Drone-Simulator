@@ -104,12 +104,10 @@ def begin_listening(socket, PORT, map):
 
         map_str = parse_drone_map_to_string(x_pos, z_pos, zoom, map)
 
-        print("Map string is:" + map_str)
-
         payload.add_drone_id(10)
         payload.add_drone_zoom(10)
 
-        payload.add_drone_map()
+        payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)
         payload.add_drone_zoom(id)
 
