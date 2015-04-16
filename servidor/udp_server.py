@@ -4,7 +4,7 @@ import configparser
 from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
-from functions import functions
+import functions as f
 import struct
 import numpy as np
 from drone.drone import Drone
@@ -68,7 +68,7 @@ def get_z_position_from_payload(payload):
     return z_pos
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
-    map_matrix = functions.getArrayToDrone(x, z, zoom, mapa)
+    map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
     map_string = ''
     for i in range(15):
             for j in range(15):
