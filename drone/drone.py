@@ -10,7 +10,7 @@ class Ponto:
 class Drone:
     def __init__(self):
         self.dx = 0
-        self.dy = 0
+        self.dy = 80
         self.dz = 0
 
         self.bsRaio = 5
@@ -127,11 +127,12 @@ class Drone:
 
                 if y1 == y2 and y2 == y3:
                     self.moveBy(0, -self.cy + y1 + 2, 0)
+                    print("Pousou!")
                     return self.sendPayload()
-        
+
         self.zoom -= 1
         self.moveBy(randint(-5, 5), 10, randint(-5, 5))
-        return None
+        return self.sendPayload()
 
     def sendPayload(self):
         return ClientPayload(self)
