@@ -44,6 +44,7 @@ def begin_streaming(s, HOST, PORT):
 
             print('Server reply : ' + str(reply)[1:])
 
+
         except socket.error as msg:
             print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
             sys.exit()

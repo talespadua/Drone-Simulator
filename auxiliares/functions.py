@@ -25,9 +25,9 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
                 validSlot = 0
 
             if validSlot:
-                returningArray[i][j] = mapa[baseX + (zoom * i)][baseZ + (zoom * j)]  # Mapa deve ser global
+                returningArray.itemset((i, j), mapa.item(baseX + (zoom * i), baseZ + (zoom * j)))  # Mapa deve ser global
             else:
-                returningArray[i][j] = 255
+                returningArray.itemset((i, j), 255)
 
     print("Matrix generated")
     return returningArray
@@ -41,8 +41,8 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     # O método constroi uma submatriz para tratamento posterior. Para isso, podemos diminuir o alcance corretamente
 
 
-    gridSizeX = 50  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
-    gridSizeZ = 50
+    gridSizeX = 150  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
+    gridSizeZ = 150
 
     if previousX > newX:
         newArrayXStart = newX - 5
@@ -63,12 +63,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
         print("Colisão")
         return -1
 
-    newArray = [newArrayXEnd - newArrayXStart][newArrayZEnd - newArrayZStart]
-
-    # Sets all to 0.
-    for i in range(0, newArrayXEnd - newArrayXStart):
-        for j in range(0, newArrayZEnd - newArrayZStart):
-            newArray[i][j] = 0
+    newArray = np.zeros(((newArrayXEnd - newArrayXStart), (newArrayZEnd - newArrayZStart)))
 
     # Desenha reta entre quadrados Como as margens da submatriz são limitadas pelas pontas dos quadrados, temos apenas que traçar entre eles.
     lineAngle = 0  # 0 é diagonal direita cima -> baixo esquerda. Isto ocorre se um dos pontos for maior/menor em X e ao mesmo tempo em Z em relação ao outro
@@ -77,50 +72,51 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
         if newZ < previousZ:
             lineAngle = 1  # X maior e Z menor -> inverte
     if newX > previousX:
-        if newZ > previousZ:
+        if newZ < previousZ:
             lineAngle = 1  # X maior e Z menor -> inverte
 
     if lineAngle == 0:
-        line(newArray, 0, gridSizeZ - 10, gridSizeX - 10, 0)
-        line(newArray, 10, gridSizeZ, gridSizeX, 10)
+        line(newArray, 0, newArrayZEnd - newArrayZStart - 10, newArrayXEnd - newArrayXStart - 10, 0)
+        line(newArray, 10, newArrayZEnd - newArrayZStart, newArrayXEnd - newArrayXStart, 10)
     else:
-        line(newArray, gridSizeX - 10, 0, 0, gridSizeZ - 10)
-        line(newArray, gridSizeX, 10, 10, gridSizeZ)
+        line(newArray, newArrayXEnd - newArrayXStart - 10, 0, 0, newArrayZEnd - newArrayZStart - 10)
+        line(newArray, newArrayXEnd - newArrayXStart, 10, 10, newArrayZEnd - newArrayZStart)
 
 
     # Roda um grafo simples de espalhamento breadth-First pelo espaço definido. A cada iteração ele compara a altura y - 3 enviada (Ponto 2 da altura da nave) com o mapa. Se for menor ou igual, retorna colisão.
 
-    graphQueue = Queue()
-    graphQueue.enqueue(previousX)
-    graphQueue.enqueue(previousZ)
-    while (graphQueue.size() > 0):
+    graphQueue = Queue(0)
+    graphQueue.put(previousX)
+    graphQueue.put(previousZ)
+    while (graphQueue.qsize() > 0):
         #Pega X e Z enfileirados
-        graphX = graphQueue.dequeue()
-        graphZ = graphQueue.dequeue()
+        graphX = graphQueue.get()
+        graphZ = graphQueue.get()
 
-        if mapa[i + newArrayXStart][
-                    j + newArrayZStart] < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
-            newArray[i][j] = 1
-        else:
-            print("Colisão")
-            return -1
+        if(newArray.item(graphX, graphZ) == 0):
 
-        #para cara verificação de adjacencia com valor 0, adiciona-se os X e Z novos para verificar. Obs.: JAMAIS MUDAR A ORDEM DE X E Z.
-        if newArray[graphX + 1][graphZ] == 0:
-            graphQueue.enqueue(graphX + 1)
-            graphQueue.enqueue(graphZ)
+            if mapa.item((graphX + newArrayXStart, graphZ + newArrayZStart),) < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
+                newArray.itemset((graphX, graphZ), 1)
+            else:
+                print("Colisão")
+                return -1
 
-        if newArray[graphX - 1][graphZ] == 0:
-            graphQueue.enqueue(graphX - 1)
-            graphQueue.enqueue(graphZ)
+            #para cara verificação de adjacencia com valor 0, adiciona-se os X e Z novos para verificar. Obs.: JAMAIS MUDAR A ORDEM DE X E Z.
+            if graphX + 1 < newArrayXEnd - newArrayXStart and newArray.item(graphX + 1, graphZ) == 0:
+                graphQueue.put(graphX + 1)
+                graphQueue.put(graphZ)
 
-        if newArray[graphX][graphZ + 1] == 0:
-            graphQueue.enqueue(graphX)
-            graphQueue.enqueue(graphZ + 1)
+            if graphX - 1 > 0 and newArray.item(graphX - 1, graphZ) == 0:
+                graphQueue.put(graphX - 1)
+                graphQueue.put(graphZ)
 
-        if newArray[graphX][graphZ - 1] == 0:
-            graphQueue.enqueue(graphX)
-            graphQueue.enqueue(graphZ - 1)
+            if graphZ + 1 < newArrayZEnd - newArrayZStart and newArray.item(graphX, graphZ + 1) == 0:
+                graphQueue.put(graphX)
+                graphQueue.put(graphZ + 1)
+
+            if graphZ - 1 > 0 and newArray.item(graphX, graphZ - 1) == 0:
+                graphQueue.put(graphX)
+                graphQueue.put(graphZ - 1)
     print("Sem colisões neste movimento")
 
     return 1
@@ -128,6 +124,10 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
 
 # O metodo da linha de Bresenham define as bordas reais entre os pontos. Isto seta distancia enter pontos numa matriz em 1, mesmo que a linha projetada possua um angulo incomum.
 def line(array, x0, y0, x1, y1):
+    x1 -= 1
+    y1 -= 1
+    x0 -= 1
+    y0 -= 1
     "Bresenham's line algorithm"
     dx = abs(x1 - x0)
     dy = abs(y1 - y0)
@@ -137,7 +137,7 @@ def line(array, x0, y0, x1, y1):
     if dx > dy:
         err = dx / 2.0
         while x != x1:
-            array[x][y] = 1
+            array.itemset((x, y), 1)
             err -= dy
             if err < 0:
                 y += sy
@@ -146,12 +146,23 @@ def line(array, x0, y0, x1, y1):
     else:
         err = dy / 2.0
         while y != y1:
-            array[x][y] = 1
+            array.itemset((x, y), 1)
             err -= dx
             if err < 0:
                 x += sx
                 err += dy
             y += sy
-    array[x][y] = 1
+    array.itemset((x, y), 1)
 
 
+def main():
+
+    mapa = np.zeros((50, 50))
+    #mapa.itemset((15, 15), 90)
+    verifyCollision(10, 10, 30, 80, 30, mapa)
+
+
+    print("exit")
+
+if __name__ == "__main__":
+    main()
