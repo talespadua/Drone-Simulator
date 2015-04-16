@@ -67,6 +67,10 @@ def get_z_position_from_payload(payload):
     z_pos = struct.unpack('I', payload[14:18])[0]
     return z_pos
 
+def get_islanded_from_payload(payload):
+    islanded = struct.unpack('?', payload[18:19])[0]
+    return islanded
+
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
     map_string = ''
@@ -95,12 +99,14 @@ def begin_listening(socket, PORT, map):
         x_pos = get_x_position_from_payload(data)
         y_pos = get_y_position_from_payload(data)
         z_pos = get_z_position_from_payload(data)
+        islanded = get_islanded_from_payload(data)
 
         print("zoom is :" + str(zoom)+" id is: "+str(id))
         print("Drone positions: ")
         print("x: " + str(x_pos))
         print("y: " + str(y_pos))
         print("z: " + str(z_pos))
+        print("Landed: " + str(islanded))
 
         map_str = parse_drone_map_to_string(x_pos, z_pos, zoom, map)
 

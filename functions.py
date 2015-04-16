@@ -25,7 +25,7 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
                 validSlot = 0
 
             if validSlot == 1:
-                print(baseX + (zoom * i), baseZ + (zoom * j))
+                #print(baseX + (zoom * i), baseZ + (zoom * j))
                 returningArray.itemset((i, j), mapa.item(baseX + (zoom * i), baseZ + (zoom * j)))  # Mapa deve ser global
                 #info = 0
                 #y_pos = mapa[baseX + (zoom * i)][baseZ + (zoom * j)]  # Mapa deve ser global

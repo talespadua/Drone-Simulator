@@ -65,6 +65,7 @@ def begin_streaming(s, HOST, PORT, drone):
     params.dx = drone.dx
     params.dy = drone.dy
     params.dz = drone.dz
+    params.islanding = drone.islanding
     payload = ClientPayload()
     payload.add_params(params)
 

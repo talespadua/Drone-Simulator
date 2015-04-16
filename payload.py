@@ -39,7 +39,7 @@ class ClientPayload:
         self.payload = bytearray(512)
 
     def add_params(self, params):
-        struct.pack_into('IBBiii',
+        struct.pack_into('IBBiii?',
                          self.payload,
                          0,
                          params.port,
@@ -47,7 +47,8 @@ class ClientPayload:
                          params.zoom,
                          params.dx,
                          params.dy,
-                         params.dz)
+                         params.dz,
+                         params.islanding)
 
     def get_payload(self):
         return self.payload

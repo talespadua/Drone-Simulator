@@ -19,6 +19,8 @@ class Drone:
 
         self.port = 0
         self.id = randint(0, 255)
+
+        self.islanding = False
         # self.estado = 1
 
         # self.mapa = list()
