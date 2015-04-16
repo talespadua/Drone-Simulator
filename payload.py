@@ -38,17 +38,29 @@ class ClientPayload:
     def __init__(self):
         self.payload = bytearray(512)
 
+    def add_drone_xpos(self, xpos):
+        struct.pack_into('>i', self.payload, 6, int(xpos))
+
+    def add_drone_ypos(self, ypos):
+        struct.pack_into('>i', self.payload, 10, int(ypos))
+
+    def add_drone_zpos(self, zpos):
+        struct.pack_into('>i', self.payload, 14, int(zpos))
+
+    def add_drone_land_info(self, islanded):
+        struct.pack_into('?', self.payload, 18, islanded)
+
     def add_params(self, params):
+<<<<<<< HEAD
         struct.pack_into('>IBBiii?',
+=======
+        struct.pack_into('IBB',
+>>>>>>> 2b303cfa03d7125787c0a19398c01ab603e46667
                          self.payload,
                          0,
                          params.port,
                          params.id,
-                         params.zoom,
-                         params.dx,
-                         params.dy,
-                         params.dz,
-                         params.islanding)
+                         params.zoom)
 
     def get_payload(self):
         return self.payload
