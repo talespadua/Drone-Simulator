@@ -101,7 +101,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
 
         if(newArray.item(graphX, graphZ) == 0):
 
-            if mapa.item((graphX + newArrayXStart, graphZ + newArrayZStart),) < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
+            if mapa.item(graphX + newArrayXStart, graphZ + newArrayZStart) < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
                 newArray.itemset((graphX, graphZ), 1)
             else:
                 print("Colisão")

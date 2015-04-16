@@ -9,13 +9,13 @@ class Ponto:
 
 class Drone:
     def __init__(self):
-        self.dx = 10
+        self.dx = 20
         self.dy = 80
-        self.dz = 10
+        self.dz = 20
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 5
+        self.zoom = 1
 
         self.port = 0
         self.id = randint(0, 255)
