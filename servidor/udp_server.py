@@ -56,15 +56,15 @@ def get_zoom_from_payload(payload):
     return zoom
 
 def get_x_position_from_payload(payload):
-    x_pos = struct.unpack('I', payload[6:10])[0]
+    x_pos = struct.unpack('>i', payload[6:10])[0]
     return x_pos
 
 def get_y_position_from_payload(payload):
-    y_pos = struct.unpack('I', payload[10:14])[0]
+    y_pos = struct.unpack('>i', payload[10:14])[0]
     return y_pos
 
 def get_z_position_from_payload(payload):
-    z_pos = struct.unpack('I', payload[14:18])[0]
+    z_pos = struct.unpack('>i', payload[14:18])[0]
     return z_pos
 
 def get_islanded_from_payload(payload):

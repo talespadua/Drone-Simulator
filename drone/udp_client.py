@@ -62,12 +62,12 @@ def begin_streaming(s, HOST, PORT, drone):
     params.port = PORT
     params.id = drone.id
     params.zoom = drone.zoom
-    params.dx = drone.dx
-    params.dy = drone.dy
-    params.dz = drone.dz
-    params.islanding = drone.islanding
     payload = ClientPayload()
     payload.add_params(params)
+    payload.add_drone_xpos(drone.dx)
+    payload.add_drone_ypos(drone.dy)
+    payload.add_drone_zpos(drone.dz)
+    payload.add_drone_land_info(drone.islanding)
 
     while 1:
         try:
