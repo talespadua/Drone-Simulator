@@ -51,11 +51,7 @@ class ClientPayload:
         struct.pack_into('?', self.payload, 18, islanded)
 
     def add_params(self, params):
-<<<<<<< HEAD
-        struct.pack_into('>IBBiii?',
-=======
         struct.pack_into('IBB',
->>>>>>> 2b303cfa03d7125787c0a19398c01ab603e46667
                          self.payload,
                          0,
                          params.port,

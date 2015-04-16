@@ -65,10 +65,6 @@ def get_y_position_from_payload(payload):
 
 def get_z_position_from_payload(payload):
     z_pos = struct.unpack('>i', payload[14:18])[0]
-<<<<<<< HEAD
-    print("z = ", z_pos)
-=======
->>>>>>> 2b303cfa03d7125787c0a19398c01ab603e46667
     return z_pos
 
 def get_islanded_from_payload(payload):
