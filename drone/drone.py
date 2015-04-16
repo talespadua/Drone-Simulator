@@ -12,23 +12,32 @@ class Drone:
         self.dx = 0
         self.dy = 0
         self.dz = 0
+
         self.bsRaio = 5
-        self.mapa = list()
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
         self.zoom = 10
+
         self.port = 0
         self.id = randint(0, 255)
+        # self.estado = 1
 
-    # self.estado = 1gi
+        self.mapa = list()
+        self.pontoInicial = Ponto(0, 80, 0)
+        self.mapa[0].append(list())
+        self.mapa[0][0].append(self.pontoInicial)
+        self.pontoCentral = self.pontoInicial
 
     def moveBy(self, x, y, z):
         self.dx = x
         self.dy = y
         self.dz = z
 
-    def addPontos(self, pontos, zoom):
-        # x = 0, z = 14
-        #pontoAux = ponto[0][14]
+        #Calcula diferença entre o proximo ponto e o ponto inicial
+        self.pontoCentral.x += x
+        self.pontoCentral.y += y
+        self.pontoCentral.z += z
+
+    def addPontos(self, pontos):
         setores = [list() * 9]
 
         for x in range(15):
@@ -36,7 +45,7 @@ class Drone:
                 if pontos[x][z] == 255:
                     pontos[x][z] = -1
 
-                p = Ponto((x - 7) * zoom + self.dx, pontos[x][z], (z - 7) * zoom + self.dz)
+                p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
 
                 #define setor ao qual o ponto pertence
                 a = 2
@@ -58,7 +67,6 @@ class Drone:
 
     def chooseDirection(self, setores):
         v1 = 0
-        v2 = 0
         i = 0
         choice = 0
         cMed = 0
@@ -88,6 +96,7 @@ class Drone:
         x = 5 * self.zoom
         z = 5 * self.zoom
 
+        #Escolhe setor
         if choice in [3, 4, 5]:
             z = 0
         elif choice in [6, 7, 8]:
@@ -102,12 +111,27 @@ class Drone:
 
         y = -(float((self.dy - cMed) / 10))
 
-        if self.zoom == 1:
-            y = - self.dy + cMed + 2
+        #if self.zoom == 1:
+        #    y = - self.dy + cMed + 2
 
         self.moveBy(x, y, z)
 
         return self.sendPayload()
+
+    def testePouso(self, pontos):
+        for x in range(-2, 3):
+            for z in range(-2, 3):
+                y1 = pontos[9 + x][7 + z]
+                y2 = pontos[5 + x][7 + z]
+                y3 = pontos[10 + x][10 + z]
+
+                if y1 == y2 and y2 == y3:
+                    self.moveBy(0, -self.cy + y1 + 2, 0)
+                    return self.sendPayload()
+        
+        self.zoom -= 1
+        self.moveBy(randint(-5, 5), 10, randint(-5, 5))
+        return None
 
     def sendPayload(self):
         return ClientPayload(self)
