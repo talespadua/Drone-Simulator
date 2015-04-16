@@ -52,18 +52,16 @@ def parse_map_from_server(map):
 
     return map_matrix
 
-
-def begin_streaming(s, HOST, PORT):
-
+def begin_streaming(s, HOST, PORT, drone):
     #first request
     input("Press ENTER to begin streaming")
     params = PayloadProperties()
     params.port = PORT
-    params.id = 1
-    params.zoom = 10
-    params.dx = 0
-    params.dy = 0
-    params.dz = 0
+    params.id = drone.id
+    params.zoom = drone.zoom
+    params.dx = drone.dx
+    params.dy = drone.dy
+    params.dz = drone.dz
     payload = ClientPayload()
     payload.add_params(params)
 
@@ -90,6 +88,12 @@ def begin_streaming(s, HOST, PORT):
 
             print(map_matrix)
 
+            if drone.zoom > 1:
+                setores = drone.addPontos(map)
+                payload.payload = drone.chooseDirection(setores)
+            else:
+                payload.payload = drone.testePouso(map)
+
             input("Press enter to sent next payload")
 
         except socket.error as msg:
@@ -107,7 +111,7 @@ def main():
     drone = Drone()
     drone.port = PORT
 
-    begin_streaming(s, HOST, PORT)
+    begin_streaming(s, HOST, PORT, drone)
 
 
 if __name__ == "__main__":
