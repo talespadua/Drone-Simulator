@@ -44,13 +44,14 @@ def parse_map_from_server(map):
             index = index+1
             continue
         else:
-            map_matrix[i][j] = int(c)
+            map_matrix.itemset((i, j), c)
             if j < 14:
                 j = j+1
             else:
                 i = i+1
                 j = 0
             index = index+1
+
 
     return map_matrix
 

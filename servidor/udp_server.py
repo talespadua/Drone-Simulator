@@ -4,6 +4,7 @@ import configparser
 from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
+from functions import functions
 import struct
 import numpy as np
 from drone.drone import Drone
@@ -66,8 +67,8 @@ def get_z_position_from_payload(payload):
     z_pos = struct.unpack('I', payload[14:18])[0]
     return z_pos
 
-def parse_drone_map_to_string():
-    map_matrix = np.ones((15, 15))
+def parse_drone_map_to_string(x, z, zoom, mapa):
+    map_matrix = functions.getArrayToDrone(x, z, zoom, mapa)
     map_string = ''
     for i in range(15):
             for j in range(15):
@@ -75,8 +76,9 @@ def parse_drone_map_to_string():
     return map_string
 
 #keep talking with the drone
-def begin_listening(socket, PORT):
+def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
+    soup = load_to_soup('../mapas/DotaMap.xml')
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
@@ -100,13 +102,14 @@ def begin_listening(socket, PORT):
         print("y: " + str(y_pos))
         print("z: " + str(z_pos))
 
-        map_str = parse_drone_map_to_string()
+        map_str = parse_drone_map_to_string(x_pos, z_pos, zoom, map)
 
         print("Map string is:" + map_str)
 
         payload.add_drone_id(10)
         payload.add_drone_zoom(10)
-        payload.add_drone_map(map_str)
+
+        payload.add_drone_map()
         payload.add_drone_id(zoom)
         payload.add_drone_zoom(id)
 
@@ -126,7 +129,7 @@ def main():
     s = create_socket()
     bind_socket(s, HOST, PORT)
 
-    begin_listening(s, PORT)
+    begin_listening(s, PORT, map)
     s.close()
 
 if __name__ == "__main__":
