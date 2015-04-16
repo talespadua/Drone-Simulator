@@ -74,6 +74,7 @@ def begin_streaming(s, HOST, PORT, drone):
             #Send payload
             s.sendto(payload.payload, (HOST, PORT))
 
+
             #Recebe Payload do server
             d = s.recvfrom(512)
             reply = d[0]
@@ -97,6 +98,8 @@ def begin_streaming(s, HOST, PORT, drone):
                 payload = drone.chooseDirection(setores)
             else:
                 payload = drone.testePouso(map_matrix)
+            if drone.islanding:
+                return 1
 
             input("Press enter to sent next payload")
 

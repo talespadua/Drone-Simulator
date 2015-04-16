@@ -9,13 +9,16 @@ class Ponto:
 
 class Drone:
     def __init__(self):
-        self.dx = 20
+        self.dx = randint(10, 30)
         self.dy = 80
-        self.dz = 20
+        self.dz = randint(10, 30)
+
+        self.dx = 13
+        self.dz = 14
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 1
+        self.zoom = 2
 
         self.port = 0
         self.id = randint(0, 255)
@@ -30,9 +33,9 @@ class Drone:
         # self.pontoCentral = self.pontoInicial
 
     def moveBy(self, x, y, z):
-        self.dx = x
-        self.dy = y
-        self.dz = z
+        self.dx -= x
+        self.dy -= y
+        self.dz -= z
 
         print("%d %d %d" %(x, y, z))
 
@@ -90,6 +93,7 @@ class Drone:
             med = float(soma / ptos)
             var = float(pow(soma - med * ptos, 2) / ptos)
 
+
             if i == 0:
                 v1 = var
                 cMed = med
@@ -114,6 +118,8 @@ class Drone:
             x = 0
 
         self.zoom -= 1
+        if self.zoom == 0:
+            self.zoom += 3 # zoom não pode ser 0, ele encerra erradamente, pousando no mesmo espaço.
 
         y = -((self.dy - cMed) / 10)
 
@@ -148,4 +154,6 @@ class Drone:
         payload.add_drone_ypos(self.dy)
         payload.add_drone_zpos(self.dz)
         payload.add_drone_land_info(self.islanding)
+        if self.islanding:
+            print("\n\nPouso executado com sucesso. Encerrando simulação...")
         return payload

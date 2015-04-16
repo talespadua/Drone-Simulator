@@ -44,8 +44,8 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     # O método constroi uma submatriz para tratamento posterior. Para isso, podemos diminuir o alcance corretamente
 
 
-    gridSizeX = 150  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
-    gridSizeZ = 150
+    gridSizeX = 50  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
+    gridSizeZ = 50
     if newX == previousX and newZ == previousZ:
         print("Sem movimento")
         return 1
@@ -66,7 +66,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
 
     # Se o X ou Z iniciais estiverem fora da própria grande matriz, o drona saiu do mapa. Colisão.
     if newArrayXStart < 0 or newArrayZStart < 0 or newArrayXEnd > gridSizeX or newArrayZEnd > gridSizeZ:
-        print("Colisão")
+        print("Colisão em (%d, %d) até (%d, %d): Out of bounds" %(newArrayXStart, newArrayZStart, newArrayXEnd, newArrayZEnd))
         return -1
 
     newArray = np.zeros(((newArrayXEnd - newArrayXStart), (newArrayZEnd - newArrayZStart)))
@@ -82,11 +82,13 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
             lineAngle = 1  # X maior e Z menor -> inverte
 
     if lineAngle == 0:
+        print("Hey")
         line(newArray, 0, newArrayZEnd - newArrayZStart - 10, newArrayXEnd - newArrayXStart - 10, 0)
         line(newArray, 10, newArrayZEnd - newArrayZStart, newArrayXEnd - newArrayXStart, 10)
     else:
-        line(newArray, newArrayXEnd - newArrayXStart - 10, 0, 0, newArrayZEnd - newArrayZStart - 10)
-        line(newArray, newArrayXEnd - newArrayXStart, 10, 10, newArrayZEnd - newArrayZStart)
+        print("Hi")
+        line(newArray, 10, 0, newArrayZEnd - newArrayZStart, newArrayZEnd - newArrayZStart - 10)
+        line(newArray, 0, 10, newArrayZEnd - newArrayZStart - 10, newArrayZEnd - newArrayZStart)
 
 
     # Roda um grafo simples de espalhamento breadth-First pelo espaço definido. A cada iteração ele compara a altura y - 3 enviada (Ponto 2 da altura da nave) com o mapa. Se for menor ou igual, retorna colisão.
@@ -99,7 +101,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
         graphX = graphQueue.get()
         graphZ = graphQueue.get()
 
-        if(newArray.item(graphX, graphZ) == 0):
+        if graphX + newArrayXStart < gridSizeX and graphZ + newArrayXStart < gridSizeZ and graphX > 0 and graphZ > 0 and (newArray.item(graphX, graphZ) == 0):
 
             if mapa.item(graphX + newArrayXStart, graphZ + newArrayZStart) < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
                 newArray.itemset((graphX, graphZ), 1)
