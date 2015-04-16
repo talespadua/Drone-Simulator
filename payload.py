@@ -20,7 +20,7 @@ class ServerPayload():
 
     def add_drone_map(self, map):
         sherolero = bytearray(map, "utf-8")
-        struct.pack_into('32s', self.payload, 61, sherolero)
+        struct.pack_into('450s', self.payload, 61, sherolero)
 
     def pack_payload(self):
         return bytes(self.elements)

@@ -1,7 +1,7 @@
 import socket   #for sockets
 import sys  #for exit
 import struct
-
+import numpy as np
 import configparser
 from payload import ClientPayload, PayloadProperties
 from drone import Drone #WHAT
@@ -29,8 +29,29 @@ def get_zoom_from_payload(payload):
     return zoom
 
 def get_map_from_payload(payload):
-    map = struct.unpack('100s', payload[61:161])[0]
+    map = struct.unpack('450s', payload[61:511])[0]
     return map
+
+def parse_map_from_server(map):
+    map_matrix = np.zeros((15, 15))
+    index = 0
+    i = 0
+    j = 0
+    for c in map:
+        #ignoring first byte
+        if index % 2 == 0:
+            index = index+1
+            continue
+        else:
+            map_matrix[i][j] = int(c)
+            if j < 14:
+                j = j+1
+            else:
+                i = i+1
+                j = 0
+
+    return map_matrix
+
 
 def begin_streaming(s, HOST, PORT):
 
@@ -65,8 +86,12 @@ def begin_streaming(s, HOST, PORT):
             print("Drone zoom: "+str(zoom))
             print("Drone Map: "+str(map))
 
+            map_matrix = parse_map_from_server(map)
+
+            print(map_matrix)
 
             input("Press enter to sent next payload")
+
         except socket.error as msg:
             print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
             sys.exit()

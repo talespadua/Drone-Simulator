@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
 import struct
+import numpy as np
 from drone.drone import Drone
 
 #Setting up config parser
@@ -65,6 +66,14 @@ def get_z_position_from_payload(payload):
     z_pos = struct.unpack('I', payload[14:18])[0]
     return z_pos
 
+def parse_drone_map_to_string():
+    map_matrix = np.ones((15, 15))
+    map_string = ''
+    for i in range(15):
+            for j in range(15):
+                map_string = map_string + "0" + str(int(map_matrix[i][j]))
+    return map_string
+
 #keep talking with the drone
 def begin_listening(socket, PORT):
     print("Server is listening on port " + PORT.__str__() + "...")
@@ -91,9 +100,13 @@ def begin_listening(socket, PORT):
         print("y: " + str(y_pos))
         print("z: " + str(z_pos))
 
+        map_str = parse_drone_map_to_string()
+
+        print("Map string is:" + map_str)
+
         payload.add_drone_id(10)
         payload.add_drone_zoom(10)
-        payload.add_drone_map("sherolero")
+        payload.add_drone_map(map_str)
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
         socket.sendto(payload.payload, addr)
