@@ -1,6 +1,7 @@
 import socket   #for sockets
 import sys  #for exit
-
+import struct
+import numpy as np
 import configparser
 from payload import ClientPayload, PayloadProperties
 from drone import Drone #WHAT
@@ -19,22 +20,54 @@ def create_socket():
         print('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
         sys.exit()
 
-def begin_streaming(s, HOST, PORT):
+def get_droneid_from_payload(payload):
+    id = struct.unpack('B', payload[0:1])[0]
+    return id
 
-    input("Press any key to begin streaming")
+def get_zoom_from_payload(payload):
+    zoom = struct.unpack('B', payload[1:2])[0]
+    return zoom
+
+def get_map_from_payload(payload):
+    map = struct.unpack('450s', payload[61:511])[0]
+    return map
+
+def parse_map_from_server(map):
+    map_matrix = np.zeros((15, 15))
+    index = 0
+    i = 0
+    j = 0
+    for c in map:
+        #ignoring first byte
+        if index % 2 == 0:
+            index = index+1
+            continue
+        else:
+            map_matrix[i][j] = int(c)
+            if j < 14:
+                j = j+1
+            else:
+                i = i+1
+                j = 0
+
+    return map_matrix
+
+def begin_streaming(s, HOST, PORT, drone):
+    #first request
+    input("Press ENTER to begin streaming")
     params = PayloadProperties()
     params.port = PORT
-    params.id = 1
-    params.zoom = 10
-    params.dx = 0
-    params.dy = 0
-    params.dz = 0
+    params.id = drone.id
+    params.zoom = drone.zoom
+    params.dx = drone.dx
+    params.dy = drone.dy
+    params.dz = drone.dz
     payload = ClientPayload()
-    #payload.add_params(params)
+    payload.add_params(params)
 
     while 1:
         try:
-            #Set the whole string
+            #Send payload
             s.sendto(payload.payload, (HOST, PORT))
 
             #Recebe Payload do server
@@ -42,7 +75,26 @@ def begin_streaming(s, HOST, PORT):
             reply = d[0]
             addr = d[1]
 
-            print('Server reply : ' + str(reply)[1:])
+            id = get_droneid_from_payload(reply)
+            zoom = get_zoom_from_payload(reply)
+            map = get_map_from_payload(reply)
+
+            print("Server reply:")
+            print("Drone id: "+str(id))
+            print("Drone zoom: "+str(zoom))
+            print("Drone Map: "+str(map))
+
+            map_matrix = parse_map_from_server(map)
+
+            print(map_matrix)
+
+            if drone.zoom > 1:
+                setores = drone.addPontos(map)
+                payload.payload = drone.chooseDirection(setores)
+            else:
+                payload.payload = drone.testePouso(map)
+
+            input("Press enter to sent next payload")
 
 
         except socket.error as msg:
@@ -60,7 +112,7 @@ def main():
     drone = Drone()
     drone.port = PORT
 
-    begin_streaming(s, HOST, PORT)
+    begin_streaming(s, HOST, PORT, drone)
 
 
 if __name__ == "__main__":

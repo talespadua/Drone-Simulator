@@ -4,6 +4,8 @@ import configparser
 from bs4 import BeautifulSoup
 from Map import Map
 from payload import ServerPayload, PayloadProperties
+import struct
+import numpy as np
 from drone.drone import Drone
 
 #Setting up config parser
@@ -39,6 +41,39 @@ def bind_socket(socket, HOST, PORT):
         sys.exit()
     print('Socket bind complete')
 
+
+def get_port_from_payload(payload):
+    port = struct.unpack('I', payload[0:4])[0]
+    return port
+
+def get_droneid_from_payload(payload):
+    id = struct.unpack('B', payload[4:5])[0]
+    return id
+
+def get_zoom_from_payload(payload):
+    zoom = struct.unpack('B', payload[5:6])[0]
+    return zoom
+
+def get_x_position_from_payload(payload):
+    x_pos = struct.unpack('I', payload[6:10])[0]
+    return x_pos
+
+def get_y_position_from_payload(payload):
+    y_pos = struct.unpack('I', payload[10:14])[0]
+    return y_pos
+
+def get_z_position_from_payload(payload):
+    z_pos = struct.unpack('I', payload[14:18])[0]
+    return z_pos
+
+def parse_drone_map_to_string():
+    map_matrix = np.ones((15, 15))
+    map_string = ''
+    for i in range(15):
+            for j in range(15):
+                map_string = map_string + "0" + str(int(map_matrix[i][j]))
+    return map_string
+
 #keep talking with the drone
 def begin_listening(socket, PORT):
     print("Server is listening on port " + PORT.__str__() + "...")
@@ -49,13 +84,33 @@ def begin_listening(socket, PORT):
         data = d[0]
         addr = d[1]
 
-        print("The data received is: " + data)
+        print("The data received is: " + str(data))
 
-        input("Press to continue")
+        #PARSE DATA FROM DRONE
+        drone_port = get_port_from_payload(data)
+        zoom = get_zoom_from_payload(data)
+        id = get_droneid_from_payload(data)
+        x_pos = get_x_position_from_payload(data)
+        y_pos = get_y_position_from_payload(data)
+        z_pos = get_z_position_from_payload(data)
+
+        print("zoom is :" + str(zoom)+" id is: "+str(id))
+        print("Drone positions: ")
+        print("x: " + str(x_pos))
+        print("y: " + str(y_pos))
+        print("z: " + str(z_pos))
+
+        map_str = parse_drone_map_to_string()
+
+        print("Map string is:" + map_str)
 
         payload.add_drone_id(10)
         payload.add_drone_zoom(10)
+        payload.add_drone_map(map_str)
+        payload.add_drone_id(zoom)
+        payload.add_drone_zoom(id)
         payload.add_drone_map("sherolero")
+
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
         socket.sendto(payload.payload, addr)
