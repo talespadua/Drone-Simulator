@@ -89,6 +89,7 @@ class Drone:
                     soma += h.y
                     ptos += 1
                 else:
+                    print("nope %d" %(i))
                     setorNeg = 1
                     break
 

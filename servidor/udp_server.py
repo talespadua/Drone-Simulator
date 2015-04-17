@@ -74,10 +74,11 @@ def get_islanded_from_payload(payload):
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
+
     map_string = ''
     for i in range(15):
             for j in range(15):
-                map_string = map_string + "0" + str(int(map_matrix[i][j]))
+                map_string = map_string + "0" + ' ' + str(int(map_matrix[i][j])) + ' '
     return map_string
 
 #keep talking with the drone
@@ -112,13 +113,11 @@ def begin_listening(socket, PORT, map):
         print("x: " + str(oldX + x_pos))
         print("y: " + str(oldY + y_pos))
         print("z: " + str(oldZ + z_pos))
-
-
-
         print("Landed: " + str(islanded))
 
         colision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
         oldX += x_pos
+        oldY += y_pos
         oldZ += z_pos
 
         if colision == -1:

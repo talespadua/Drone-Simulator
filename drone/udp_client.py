@@ -34,6 +34,8 @@ def get_map_from_payload(payload):
     return map
 
 def parse_map_from_server(map):
+    map = map.split(' ')
+
     map_matrix = np.zeros((15, 15))
     index = 0
     i = 0
@@ -44,7 +46,7 @@ def parse_map_from_server(map):
             index = index+1
             continue
         else:
-            map_matrix.itemset((i, j), c)
+            map_matrix.itemset((i, j), int(c))
             if j < 14:
                 j = j+1
             else:
@@ -91,7 +93,7 @@ def begin_streaming(s, HOST, PORT, drone):
 
             map_matrix = parse_map_from_server(map)
 
-            print(str(map_matrix))
+            print(map_matrix)
 
             payload = ClientPayload()
 
