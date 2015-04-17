@@ -79,6 +79,7 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
     for i in range(15):
             for j in range(15):
                 map_string = map_string + "0" + ' ' + str(int(map_matrix[i][j])) + ' '
+
     return map_string
 
 #keep talking with the drone

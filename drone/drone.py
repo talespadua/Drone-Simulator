@@ -73,7 +73,7 @@ class Drone:
 
     def chooseDirection(self, setores):
         i = 0
-        choice = 0
+        choice = -1
         cMed = 0
         cVar = 0
 
@@ -89,7 +89,7 @@ class Drone:
                     soma += h.y
                     ptos += 1
                 else:
-                    print("nope %d" %(i))
+                    print("nope %d" % (i))
                     setorNeg = 1
                     break
 
@@ -112,19 +112,20 @@ class Drone:
                     cMed = med
                     cVar = var
 
-                i += 1
+            i += 1
 
         x = 5 * self.zoom
         z = 5 * self.zoom
 
-        print("%.2f %.2f" %(cMed, cVar))
+        print("%.2f %.2f %d" %(cMed, cVar, choice))
 
         #Caso a média seja muito alta
-        if cMed > 200 or cVar > 2:
+        if cMed > 200 or cVar > 2 or choice == -1:
+            if self.zoom < 10:
+                self.zoom += 1
+
             self.moveBy(randint(-5, 5), 10, randint(-5, 5))
             return self.sendPayload()
-
-        print("Setor: %d" %(choice))
 
         #Escolhe setor
         if choice in [3, 4, 5]:

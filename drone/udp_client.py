@@ -35,6 +35,9 @@ def get_map_from_payload(payload):
 
 def parse_map_from_server(map):
     map = map.split(' ')
+    map.pop()
+
+    print(len(map))
 
     map_matrix = np.zeros((15, 15))
     index = 0
@@ -105,7 +108,7 @@ def begin_streaming(s, HOST, PORT, drone):
             if drone.islanding:
                 return 1
 
-            input("Press enter to sent next payload")
+            input("Press enter to send next payload")
 
 
         except socket.error as msg:
