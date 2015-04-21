@@ -12,6 +12,7 @@ class Drone:
         self.dx = 0
         self.dy = 80
         self.dz = 0
+        self.absY = 80
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
@@ -33,6 +34,8 @@ class Drone:
         self.dx = x
         self.dy = y
         self.dz = z
+
+        self.absY += y
 
         print("%d %d %d" %(x, y, z))
 
@@ -93,6 +96,7 @@ class Drone:
                     setorNeg = 1
                     break
 
+            # Verifica se no setor há algum ponto inválido
             if setorNeg == 0:
                 med = float(soma / ptos)
 
@@ -114,17 +118,15 @@ class Drone:
 
             i += 1
 
-        x = 5 * self.zoom
-        z = 5 * self.zoom
+        x = self.zoom
+        z = self.zoom
 
-        print("%.2f %.2f %d" %(cMed, cVar, choice))
-
-        #Caso a média seja muito alta
+        #Caso a média ou variância seja muito alta ou nenhum setor tenha sido escolhido
         if cMed > 200 or cVar > 2 or choice == -1:
             if self.zoom < 10:
                 self.zoom += 1
 
-            self.moveBy(randint(-5, 5), 10, randint(-5, 5))
+            self.moveBy(randint(-1, 1), 10, randint(-1, 1))
             return self.sendPayload()
 
         #Escolhe setor
@@ -138,13 +140,13 @@ class Drone:
         elif choice in [1, 4, 7]:
             x = 0
 
+        y = (- self.absY + cMed) / self.zoom
+
+        self.moveBy(x, y, z)
+
         self.zoom -= 1
         if self.zoom == 0:
             self.zoom += 3 # zoom não pode ser 0, ele encerra erradamente, pousando no mesmo espaço.
-
-        y = -((self.dy - cMed) / 10)
-
-        self.moveBy(x, y, z)
 
         return self.sendPayload()
 
@@ -157,7 +159,7 @@ class Drone:
                 y3 = pontos[10 + x][10 + z]
 
                 if y1 == y2 and y2 == y3:
-                    self.moveBy(0, -self.dy + y1 + 2, 0)
+                    self.moveBy(0, -self.absY + y1 + 3, 0)
                     self.islanding = True
                     return self.sendPayload()
 

@@ -79,11 +79,13 @@ def begin_streaming(s, HOST, PORT, drone):
             #Send payload
             s.sendto(payload.payload, (HOST, PORT))
 
-
             #Recebe Payload do server
             d = s.recvfrom(512)
             reply = d[0]
             addr = d[1]
+
+            if drone.islanding:
+                return 1
 
             id = get_droneid_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
@@ -105,11 +107,10 @@ def begin_streaming(s, HOST, PORT, drone):
                 payload = drone.chooseDirection(setores)
             else:
                 payload = drone.testePouso(map_matrix)
-            if drone.islanding:
-                return 1
 
-            input("Press enter to send next payload")
 
+            if not drone.islanding:
+                input("Press enter to send next payload")
 
         except socket.error as msg:
             print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])

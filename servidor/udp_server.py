@@ -86,9 +86,9 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = randint(0, map.x_size - 1)
+    oldX = randint(10, map.x_size - 11)
     oldY = 0
-    oldZ = randint(0, map.z_size - 1)
+    oldZ = randint(10, map.z_size - 11)
 
     while 1:
         # receive data from drone (data, addr)
@@ -127,10 +127,7 @@ def begin_listening(socket, PORT, map):
         if islanded:
             return 1
 
-        map_str = parse_drone_map_to_string(oldX + x_pos, oldZ + z_pos, zoom, map)
-
-        payload.add_drone_id(id)
-        payload.add_drone_zoom(zoom)
+        map_str = parse_drone_map_to_string(oldX, oldZ, zoom, map)
 
         payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)

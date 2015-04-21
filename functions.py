@@ -46,6 +46,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
 
     gridSizeX = 50  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
     gridSizeZ = 50
+
     if newX == previousX and newZ == previousZ:
         print("Sem movimento")
         return 1
@@ -77,9 +78,6 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     if newX > previousX:
         if newZ < previousZ:
             lineAngle = 1  # X maior e Z menor -> inverte
-    if newX > previousX:
-        if newZ < previousZ:
-            lineAngle = 1  # X maior e Z menor -> inverte
 
     if lineAngle == 0:
         print("Hey")
@@ -101,28 +99,28 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
         graphX = graphQueue.get()
         graphZ = graphQueue.get()
 
-        if graphX + newArrayXStart < gridSizeX and graphZ + newArrayXStart < gridSizeZ and graphX > 0 and graphZ > 0 and (newArray.item(graphX, graphZ) == 0):
+        if graphX + newArrayXStart < gridSizeX and graphZ + newArrayZStart < gridSizeZ and graphX > 0 and graphZ > 0 and (newArray.item(newArrayXEnd - graphX, newArrayZEnd - graphZ) == 0):
 
             if mapa.item(graphX + newArrayXStart, graphZ + newArrayZStart) < newY - 3:  # note que ele soma os valores base de X e Z pré-geração do novo array. Isto da a posição correta no mapa.
-                newArray.itemset((graphX, graphZ), 1)
+                newArray.itemset((newArrayXEnd - graphX, newArrayZEnd - graphZ), 1)
             else:
                 print("Colisão")
                 return -1
 
             #para cara verificação de adjacencia com valor 0, adiciona-se os X e Z novos para verificar. Obs.: JAMAIS MUDAR A ORDEM DE X E Z.
-            if graphX + 1 < newArrayXEnd - newArrayXStart and newArray.item(graphX + 1, graphZ) == 0:
+            if graphX + 1 < newArrayXEnd - newArrayXStart and newArray.item(newArrayXEnd - graphX + 1, newArrayZEnd - graphZ) == 0:
                 graphQueue.put(graphX + 1)
                 graphQueue.put(graphZ)
 
-            if graphX - 1 > 0 and newArray.item(graphX - 1, graphZ) == 0:
+            if graphX - 1 > 0 and newArray.item(newArrayXEnd - graphX - 1, newArrayZEnd - graphZ) == 0:
                 graphQueue.put(graphX - 1)
                 graphQueue.put(graphZ)
 
-            if graphZ + 1 < newArrayZEnd - newArrayZStart and newArray.item(graphX, graphZ + 1) == 0:
+            if graphZ + 1 < newArrayZEnd - newArrayZStart and newArray.item(newArrayXEnd - graphX, newArrayZEnd - graphZ + 1) == 0:
                 graphQueue.put(graphX)
                 graphQueue.put(graphZ + 1)
 
-            if graphZ - 1 > 0 and newArray.item(graphX, graphZ - 1) == 0:
+            if graphZ - 1 > 0 and newArray.item(newArrayXEnd - graphX, newArrayZEnd - graphZ - 1) == 0:
                 graphQueue.put(graphX)
                 graphQueue.put(graphZ - 1)
     print("Sem colisões neste movimento")
