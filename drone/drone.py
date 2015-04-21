@@ -53,11 +53,13 @@ class Drone:
 
                 p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
 
-                #Adiciona ponto no mapa do drone
-                pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
+                #ignora pontos fora do mapa
+                if p.y > -1:
+                    #Adiciona ponto no mapa do drone
+                    pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
 
-                if self.mapa.count(pMapa) == 0:
-                    self.mapa.append(pMapa)
+                    if pMapa not in self.mapa:
+                        self.mapa.append(pMapa)
 
                 #define setor ao qual o ponto pertence
                 a = 2
@@ -74,6 +76,9 @@ class Drone:
                     b = 1
 
                 setores[3 * b + a].append(p)
+
+        #Ordena pontos do mapa do drone
+        self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
         return setores
 
