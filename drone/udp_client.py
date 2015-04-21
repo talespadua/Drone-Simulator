@@ -129,6 +129,7 @@ def main():
 
     begin_streaming(s, HOST, PORT, drone)
 
+    s.close()
 
 if __name__ == "__main__":
     main()

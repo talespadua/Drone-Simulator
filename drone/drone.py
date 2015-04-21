@@ -22,13 +22,10 @@ class Drone:
         self.id = randint(0, 255)
 
         self.islanding = False
-        # self.estado = 1
 
-        # self.mapa = list()
-        # self.pontoInicial = Ponto(0, 80, 0)
-        # self.mapa[0].append(list())
-        # self.mapa[0][0].append(self.pontoInicial)
-        # self.pontoCentral = self.pontoInicial
+        self.mapa = list()
+        self.pontoInicial = Ponto(self.dx, self.dy, self.dz)
+        self.pontoCentral = self.pontoInicial
 
     def moveBy(self, x, y, z):
         self.dx = x
@@ -39,10 +36,10 @@ class Drone:
 
         print("%d %d %d" %(x, y, z))
 
-        #Calcula diferença entre o proximo ponto e o ponto inicial
-        # self.pontoCentral.x += x
-        # self.pontoCentral.y += y
-        # self.pontoCentral.z += z
+        #Calcula diferença entre o proximo ponto e o ponto inicial(0, 80, 0)
+        self.pontoCentral.x += x
+        self.pontoCentral.y += y
+        self.pontoCentral.z += z
 
     def addPontos(self, pontos):
         setores = list()
@@ -55,6 +52,12 @@ class Drone:
                     pontos[x][z] = -1
 
                 p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
+
+                #Adiciona ponto no mapa do drone
+                pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
+
+                if self.mapa.count(pMapa) == 0:
+                    self.mapa.append(pMapa)
 
                 #define setor ao qual o ponto pertence
                 a = 2
