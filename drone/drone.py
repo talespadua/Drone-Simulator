@@ -88,6 +88,8 @@ class Drone:
         cMed = 0
         cVar = 0
 
+        firstValid = 0
+
         # calc por variancia
         for s in setores:
             soma = 0
@@ -100,12 +102,12 @@ class Drone:
                     soma += h.y
                     ptos += 1
                 else:
-                    print("nope %d" % (i))
                     setorNeg = 1
                     break
 
             # Verifica se no setor há algum ponto inválido
             if setorNeg == 0:
+                firstValid = 1
                 med = float(soma / ptos)
 
                 sVar = 0
@@ -116,9 +118,10 @@ class Drone:
                 var = float(sVar / ptos - 1)
 
 
-                if i == 0:
+                if firstValid == 1:
                     cMed = med
                     cVar = var
+                    choice = i
                 elif var < cVar:
                     choice = i
                     cMed = med
@@ -130,11 +133,14 @@ class Drone:
         z = self.zoom
 
         #Caso a média ou variância seja muito alta ou nenhum setor tenha sido escolhido
-        if cMed > 200 or cVar > 2 or choice == -1:
-            if self.zoom < 10:
+        #Vale alterar possíveis valores de cVar (no caso, aqui ele também é influenciado pelo zoom)
+        if cMed > 200 or cVar > 50 * self.zoom or choice == -1:
+            #Aumenta área de procura
+            if self.zoom < 5:
                 self.zoom += 1
 
-            self.moveBy(randint(-1, 1), 10, randint(-1, 1))
+            #Move um pouco p/pegar área diferente
+            self.moveBy(randint(-3, 3), 0, randint(-3, 3))
             return self.sendPayload()
 
         #Escolhe setor
@@ -148,6 +154,7 @@ class Drone:
         elif choice in [1, 4, 7]:
             x = 0
 
+        #De acordo com o zoom, reduz altitude
         y = (- self.absY + cMed) / self.zoom
 
         self.moveBy(x, y, z)

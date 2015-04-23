@@ -70,7 +70,7 @@ def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
         print("Colisão em (%d, %d) até (%d, %d): Out of bounds" %(newArrayXStart, newArrayZStart, newArrayXEnd, newArrayZEnd))
         return -1
 
-    newArray = np.zeros(((newArrayXEnd - newArrayXStart), (newArrayZEnd - newArrayZStart)))
+    newArray = np.zeros(((newArrayXEnd - newArrayXStart + 2), (newArrayZEnd - newArrayZStart + 2)))
 
     # Desenha reta entre quadrados Como as margens da submatriz são limitadas pelas pontas dos quadrados, temos apenas que traçar entre eles.
     lineAngle = 0  # 0 é diagonal direita cima -> baixo esquerda. Isto ocorre se um dos pontos for maior/menor em X e ao mesmo tempo em Z em relação ao outro

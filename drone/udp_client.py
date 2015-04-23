@@ -29,16 +29,14 @@ def get_zoom_from_payload(payload):
     return zoom
 
 def get_map_from_payload(payload):
-    map = struct.unpack('450s', payload[61:511])[0]
-    map = str(map)
+    map = list()
+
+    for pad in range(61, 511):
+        map.append(struct.unpack('B', payload[pad:pad + 1])[0])
+
     return map
 
 def parse_map_from_server(map):
-    map = map.split(' ')
-    map.pop()
-
-    print(len(map))
-
     map_matrix = np.zeros((15, 15))
     index = 0
     i = 0
@@ -89,12 +87,12 @@ def begin_streaming(s, HOST, PORT, drone):
 
             id = get_droneid_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
-            map = get_map_from_payload(reply)[2:]
+            map = get_map_from_payload(reply)
 
             print("Server reply:")
             print("Drone id: "+str(id))
             print("Drone zoom: "+str(zoom))
-            print("Drone Map: "+str(map))
+            #print("Drone Map: "+str(map))
 
             map_matrix = parse_map_from_server(map)
 
