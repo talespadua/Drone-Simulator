@@ -34,7 +34,7 @@ class Drone:
 
         self.absY += y
 
-        print("%d %d %d" %(x, y, z))
+        print("Movimento nesta iteração: x:%d y:%d z:%d" %(x, y, z))
 
         #Calcula diferença entre o proximo ponto e o ponto inicial(0, 80, 0)
         self.pontoCentral.x += x
