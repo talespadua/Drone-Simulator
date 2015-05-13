@@ -19,8 +19,14 @@ class ServerPayload():
         struct.pack_into('B', self.payload, 1, int(zoom))
 
     def add_drone_map(self, map):
-        sherolero = bytearray(map, "utf-8")
-        struct.pack_into('450s', self.payload, 61, sherolero)
+        #sherolero = bytearray(map, "utf-8")
+        #struct.pack_into('450s', self.payload, 61, sherolero)
+
+        count = 61
+
+        for val in map:
+            struct.pack_into('B', self.payload, count, int(val))
+            count += 1
 
     def pack_payload(self):
         return bytes(self.elements)

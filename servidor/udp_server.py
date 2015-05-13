@@ -6,6 +6,7 @@ from Map import Map
 from payload import ServerPayload, PayloadProperties
 import functions as f
 import struct
+from random import randint
 import numpy as np
 from drone.drone import Drone
 
@@ -73,19 +74,29 @@ def get_islanded_from_payload(payload):
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
-    map_string = ''
+
+    # map_string = ''
+    # for i in range(15):
+    #         for j in range(15):
+    #             map_string = map_string + "0" + str(int(map_matrix[i][j]))
+
+    map_list = list()
+
     for i in range(15):
-            for j in range(15):
-                map_string = map_string + "0" + str(int(map_matrix[i][j]))
-    return map_string
+        for j in range(15):
+            map_list.append(0)
+            map_list.append(map_matrix[i][j])
+
+    return map_list
 
 #keep talking with the drone
 def begin_listening(socket, PORT, map):
     print("Server is listening on port " + PORT.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = 20
-    oldY = 80
-    oldZ = 20
+    oldX = randint(10, map.x_size - 11)
+    oldY = 0
+    oldZ = randint(10, map.z_size - 11)
+
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
@@ -107,13 +118,14 @@ def begin_listening(socket, PORT, map):
         print("zoom is :" + str(zoom))
         print("id is : "+str(id))
         print("Drone positions: ")
-        print("x: " + str(x_pos))
-        print("y: " + str(y_pos))
-        print("z: " + str(z_pos))
+        print("x: " + str(oldX + x_pos))
+        print("y: " + str(oldY + y_pos))
+        print("z: " + str(oldZ + z_pos))
         print("Landed: " + str(islanded))
 
         colision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
         oldX += x_pos
+        oldY += y_pos
         oldZ += z_pos
 
         if colision == -1:
@@ -122,10 +134,7 @@ def begin_listening(socket, PORT, map):
         if islanded:
             return 1
 
-        map_str = parse_drone_map_to_string(x_pos, z_pos, zoom, map)
-
-        payload.add_drone_id(10)
-        payload.add_drone_zoom(zoom)
+        map_str = parse_drone_map_to_string(oldX, oldZ, zoom, map)
 
         payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)

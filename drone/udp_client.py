@@ -29,8 +29,11 @@ def get_zoom_from_payload(payload):
     return zoom
 
 def get_map_from_payload(payload):
-    map = struct.unpack('450s', payload[61:511])[0]
-    map = str(map)
+    map = list()
+
+    for pad in range(61, 511):
+        map.append(struct.unpack('B', payload[pad:pad + 1])[0])
+
     return map
 
 def parse_map_from_server(map):
@@ -44,7 +47,7 @@ def parse_map_from_server(map):
             index = index+1
             continue
         else:
-            map_matrix.itemset((i, j), c)
+            map_matrix.itemset((i, j), int(c))
             if j < 14:
                 j = j+1
             else:
@@ -74,22 +77,26 @@ def begin_streaming(s, HOST, PORT, drone):
             #Send payload
             s.sendto(payload.payload, (HOST, PORT))
 
-
             #Recebe Payload do server
             d = s.recvfrom(512)
             reply = d[0]
             addr = d[1]
 
+            if drone.islanding:
+                return 1
+
             id = get_droneid_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
-            map = get_map_from_payload(reply)[2:]
+            map = get_map_from_payload(reply)
 
             print("Server reply:")
             print("Drone id: "+str(id))
             print("Drone zoom: "+str(zoom))
-            print("Drone Map: "+str(map))
+            #print("Drone Map: "+str(map))
 
             map_matrix = parse_map_from_server(map)
+
+            print(map_matrix)
 
             payload = ClientPayload()
 
@@ -98,11 +105,10 @@ def begin_streaming(s, HOST, PORT, drone):
                 payload = drone.chooseDirection(setores)
             else:
                 payload = drone.testePouso(map_matrix)
-            if drone.islanding:
-                return 1
 
-            input("Press enter to sent next payload")
 
+            if not drone.islanding:
+                input("Press enter to send next payload")
 
         except socket.error as msg:
             print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
@@ -121,6 +127,7 @@ def main():
 
     begin_streaming(s, HOST, PORT, drone)
 
+    s.close()
 
 if __name__ == "__main__":
     main()
