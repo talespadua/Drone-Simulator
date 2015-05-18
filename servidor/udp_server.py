@@ -10,11 +10,13 @@ from random import randint
 import numpy as np
 from drone.drone import Drone
 
+
 #Setting up config parser
 def get_config(config_file):
     config = configparser.RawConfigParser()
     config.read(config_file)
     return config
+
 
 #Load X3D map to soup
 def load_to_soup(map_path):
@@ -25,21 +27,23 @@ def load_to_soup(map_path):
         sys.exit()
     return soup
 
+
 def create_socket():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         print('Socket created')
         return s
     except socket.error as msg:
-        print('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+        print('Failed to create socket. Error Code : ' + str(msg) + ' Message ' + str(msg))
         sys.exit()
 
-def bind_socket(socket, HOST, PORT):
+
+def bind_socket(sock, host, port):
     # Bind socket to local host and port
     try:
-        socket.bind((HOST, PORT))
+        sock.bind((host, port))
     except socket.error as msg:
-        print('Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+        print('Bind failed. Error Code : ' + str(msg) + ' Message ' + str(msg))
         sys.exit()
     print('Socket bind complete')
 
@@ -48,9 +52,11 @@ def get_port_from_payload(payload):
     port = struct.unpack('I', payload[0:4])[0]
     return port
 
-def get_droneid_from_payload(payload):
-    id = struct.unpack('B', payload[4:5])[0]
-    return id
+
+def get_drone_id_from_payload(payload):
+    drone_id = struct.unpack('B', payload[4:5])[0]
+    return drone_id
+
 
 #TODO: Uncomment line to get new version of committee
 def get_zoom_from_payload(payload):
@@ -58,35 +64,43 @@ def get_zoom_from_payload(payload):
     #zoom = struct.unpack('B', payload[7:8])[0]
     return zoom
 
+
 #TODO: Delete next 3 methods after implementing new methods for vector movement
 def get_x_position_from_payload(payload):
     x_pos = struct.unpack('>i', payload[6:10])[0]
     return x_pos
 
+
 def get_y_position_from_payload(payload):
     y_pos = struct.unpack('>i', payload[10:14])[0]
     return y_pos
 
+
 def get_z_position_from_payload(payload):
     z_pos = struct.unpack('>i', payload[14:18])[0]
     return z_pos
+
 
 #TODO: implement next 3 methods for vector movement. Care with vector order, still not decided
 def get_normal_from_payload(payload):
     x_pos = struct.unpack('>i', payload[8:12])[0]
     return x_pos
 
+
 def get_frontal_from_payload(payload):
     z_pos = struct.unpack('>i', payload[12:16])[0]
     return z_pos
+
 
 def get_binormal_from_payload(payload):
     y_pos = struct.unpack('>i', payload[16:20])[0]
     return y_pos
 
+
 def get_is_landed_from_payload(payload):
     is_landed = struct.unpack('?', payload[18:19])[0]
     return is_landed
+
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
@@ -105,18 +119,19 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 
     return map_list
 
+
 #keep talking with the drone
-def begin_listening(socket, PORT, map):
-    print("Server is listening on port " + PORT.__str__() + "...")
+def begin_listening(sock, port, server_map):
+    print("Server is listening on port " + port.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    oldX = randint(10, map.x_size - 11)
-    oldY = 0
-    oldZ = randint(10, map.z_size - 11)
+    old_x = randint(10, server_map.x_size - 11)
+    old_y = 0
+    old_z = randint(10, server_map.z_size - 11)
 
     while 1:
         # receive data from drone (data, addr)
         payload = ServerPayload()
-        d = socket.recvfrom(512)
+        d = sock.recvfrom(512)
         data = d[0]
         addr = d[1]
 
@@ -126,7 +141,7 @@ def begin_listening(socket, PORT, map):
         #TODO: Uncomment methods from new committee agreement
         drone_port = get_port_from_payload(data) #keeps the same
         zoom = get_zoom_from_payload(data) #Has changes
-        id = get_droneid_from_payload(data) #Keeps the same
+        drone_id = get_drone_id_from_payload(data) #Keeps the same
 
         #Deprecated
         x_pos = get_x_position_from_payload(data)
@@ -141,17 +156,17 @@ def begin_listening(socket, PORT, map):
         is_landed = get_is_landed_from_payload(data)
 
         print("zoom is :" + str(zoom))
-        print("id is : "+str(id))
+        print("id is : "+str(drone_id))
         print("Drone positions: ")
-        print("x: " + str(oldX + x_pos))
-        print("y: " + str(oldY + y_pos))
-        print("z: " + str(oldZ + z_pos))
+        print("x: " + str(old_x + x_pos))
+        print("y: " + str(old_y + y_pos))
+        print("z: " + str(old_z + z_pos))
         print("Landed: " + str(is_landed))
 
-        collision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
-        oldX += x_pos
-        oldY += y_pos
-        oldZ += z_pos
+        collision = f.verifyCollision(old_x, old_z, old_x + x_pos, old_y + y_pos, old_z + z_pos, map)
+        old_x += x_pos
+        old_y += y_pos
+        old_z += z_pos
 
         if collision == -1:
             return 0
@@ -159,30 +174,31 @@ def begin_listening(socket, PORT, map):
         if is_landed:
             return 1
 
-        map_str = parse_drone_map_to_string(oldX, oldZ, zoom, map)
+        map_str = parse_drone_map_to_string(old_x, old_z, zoom, server_map)
 
         #TODO: implement new methods from server payload here
         payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)
-        payload.add_drone_zoom(id)
+        payload.add_drone_zoom(drone_id)
 
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
-        socket.sendto(payload.payload, addr)
+        sock.sendto(payload.payload, addr)
+
 
 def main():
     config = get_config('settings.cfg')
     soup = load_to_soup('../mapas/DotaMap.xml')
-    map = Map(soup)
+    soup_map = Map(soup)
 
     # Datagram (udp) socket
-    HOST = config.get('settings', 'host')   # Symbolic name meaning all available interfaces
-    PORT = int(config.get('settings', 'port')) # Arbitrary non-privileged port
+    host = config.get('settings', 'host')   # Symbolic name meaning all available interfaces
+    port = int(config.get('settings', 'port'))  # Arbitrary non-privileged port
 
     s = create_socket()
-    bind_socket(s, HOST, PORT)
+    bind_socket(s, host, port)
 
-    result = begin_listening(s, PORT, map)
+    result = begin_listening(s, port, soup_map)
     s.close()
 
     if result == 1:

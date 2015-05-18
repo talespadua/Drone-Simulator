@@ -1,15 +1,17 @@
-import socket   #for sockets
-import sys  #for exit
+import socket
+import sys
 import struct
 import numpy as np
 import configparser
 from payload import ClientPayload, PayloadProperties
 from drone import Drone #WHAT
 
+
 def get_config(config_file):
     config = configparser.RawConfigParser()
     config.read(config_file)
     return config
+
 
 def create_socket():
     try:
@@ -17,39 +19,47 @@ def create_socket():
         print('Socket created')
         return s
     except socket.error as msg:
-        print('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+        print('Failed to create socket. Error Code : ' + str(msg) + ' Message ' + str(msg))
         sys.exit()
 
+
 def get_drone_id_from_payload(payload):
-    id = struct.unpack('B', payload[0:1])[0]
-    return id
+    drone_id = struct.unpack('B', payload[0:1])[0]
+    return drone_id
+
 
 #TODO: implemment next 7 methods, relative to last committee changes
 def get_message_type(payload):
     msg_type = struct.unpack('B', payload[1:2])[0]
     return msg_type
 
+
 def get_message_id(payload):
     msg_id = struct.unpack('B', payload[2:3])[0]
     return msg_id
+
 
 def get_normal_wind(payload):
     normal_wind = struct.unpack('>i', payload[3:7])[0]
     return normal_wind
 
+
 def get_frontal_wind(payload):
     frontal_wind = struct.unpack('>i', payload[7:11][0])
     return frontal_wind
+
 
 def get_binormal_wind(payload):
     binormal_wind = struct.unpack('>i', payload[11:15])[0]
     return binormal_wind
 
-def get_gps_posx(payload):
+
+def get_gps_pos_x(payload):
     gps_posx = struct.unpack('>I', payload[15:19])[0]
     return gps_posx
 
-def get_gps_posy(payload):
+
+def get_gps_pos_y(payload):
     gps_posy = struct.unpack('>I', payload[19:23])[0]
     return gps_posy
 #END NEW METHODS
@@ -60,41 +70,41 @@ def get_zoom_from_payload(payload):
     #zoom = struct.unpack('B', payload[23:24])[0]
     return zoom
 
+
 def get_map_from_payload(payload):
-    map = list()
+    server_map = list()
 
     for pad in range(61, 511):
-        map.append(struct.unpack('B', payload[pad:pad + 1])[0])
-
+        server_map.append(struct.unpack('B', payload[pad:pad + 1])[0])
     return map
 
-def parse_map_from_server(map):
+
+def parse_map_from_server(server_map):
     map_matrix = np.zeros((15, 15))
     index = 0
     i = 0
     j = 0
-    for c in map:
+    for c in server_map:
         #ignoring first byte
         if index % 2 == 0:
-            index = index+1
+            index += 1
             continue
         else:
             map_matrix.itemset((i, j), int(c))
             if j < 14:
-                j = j+1
+                j += 1
             else:
-                i = i+1
+                i += 1
                 j = 0
-            index = index+1
-
-
+            index += 1
     return map_matrix
 
-def begin_streaming(s, HOST, PORT, drone):
+
+def begin_streaming(s, host, port, drone):
     #first request
     input("Press ENTER to begin streaming")
     params = PayloadProperties()
-    params.port = PORT
+    params.port = port
     params.id = drone.id
     params.zoom = drone.zoom
     payload = ClientPayload()
@@ -107,7 +117,7 @@ def begin_streaming(s, HOST, PORT, drone):
     while 1:
         try:
             #Send payload
-            s.sendto(payload.payload, (HOST, PORT))
+            s.sendto(payload.payload, (host, port))
 
             #Recebe Payload do server
             d = s.recvfrom(512)
@@ -117,9 +127,9 @@ def begin_streaming(s, HOST, PORT, drone):
             if drone.islanding:
                 return 1
 
-            id = get_drone_id_from_payload(reply)
+            drone_id = get_drone_id_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
-            map = get_map_from_payload(reply)
+            server_map = get_map_from_payload(reply)
 
             #TODO: uncomment these changes from new committee when its approved
             # msg_id = get_message_id(reply)
@@ -127,12 +137,11 @@ def begin_streaming(s, HOST, PORT, drone):
             # wind_normal = get_normal_wind(reply)
             # wind_frontal = get_frontal_wind(reply)
             # wind_binormal = get_binormal_wind(reply)
-            # gps_posx = get_gps_posx(reply)
-            # gps_posy = get_gps_posy(reply)
-
+            # gps_posx = get_gps_pos_x(reply)
+            # gps_posy = get_gps_pos_y(reply)
 
             print("Server reply:")
-            print("Drone id: "+str(id))
+            print("Drone id: "+str(drone_id))
             print("Drone zoom: "+str(zoom))
             #print("Drone Map: "+str(map))
 
@@ -147,27 +156,26 @@ def begin_streaming(s, HOST, PORT, drone):
                 payload = drone.chooseDirection(setores)
             else:
                 payload = drone.testePouso(map_matrix)
-
-
             if not drone.islanding:
                 input("Press enter to send next payload")
 
         except socket.error as msg:
-            print('Error Code : ' + str(msg[0])[1:] + ' Message ' + msg[1])
+            print('Error Code : ' + str(msg)[1:] + ' Message ' + str(msg))
             sys.exit()
+
 
 def main():
     config = get_config("settings.cfg")
 
-    HOST = config.get('settings', 'host')
-    PORT = int(config.get('settings', 'port'))
+    host = config.get('settings', 'host')
+    port = int(config.get('settings', 'port'))
 
     s = create_socket()
 
     drone = Drone()
-    drone.port = PORT
+    drone.port = port
 
-    begin_streaming(s, HOST, PORT, drone)
+    begin_streaming(s, host, port, drone)
 
     s.close()
 
