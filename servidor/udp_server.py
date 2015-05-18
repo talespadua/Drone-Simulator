@@ -52,10 +52,13 @@ def get_droneid_from_payload(payload):
     id = struct.unpack('B', payload[4:5])[0]
     return id
 
+#TODO: Uncomment line to get new version of committee
 def get_zoom_from_payload(payload):
     zoom = struct.unpack('B', payload[5:6])[0]
+    #zoom = struct.unpack('B', payload[7:8])[0]
     return zoom
 
+#TODO: Delete next 3 methods after implementing new methods for vector movement
 def get_x_position_from_payload(payload):
     x_pos = struct.unpack('>i', payload[6:10])[0]
     return x_pos
@@ -68,9 +71,22 @@ def get_z_position_from_payload(payload):
     z_pos = struct.unpack('>i', payload[14:18])[0]
     return z_pos
 
-def get_islanded_from_payload(payload):
-    islanded = struct.unpack('?', payload[18:19])[0]
-    return islanded
+#TODO: implement next 3 methods for vector movement. Care with vector order, still not decided
+def get_normal_from_payload(payload):
+    x_pos = struct.unpack('>i', payload[8:12])[0]
+    return x_pos
+
+def get_frontal_from_payload(payload):
+    z_pos = struct.unpack('>i', payload[12:16])[0]
+    return z_pos
+
+def get_binormal_from_payload(payload):
+    y_pos = struct.unpack('>i', payload[16:20])[0]
+    return y_pos
+
+def get_is_landed_from_payload(payload):
+    is_landed = struct.unpack('?', payload[18:19])[0]
+    return is_landed
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
@@ -107,13 +123,22 @@ def begin_listening(socket, PORT, map):
         print("The data received is: " + str(data))
 
         #PARSE DATA FROM DRONE
-        drone_port = get_port_from_payload(data)
-        zoom = get_zoom_from_payload(data)
-        id = get_droneid_from_payload(data)
+        #TODO: Uncomment methods from new committee agreement
+        drone_port = get_port_from_payload(data) #keeps the same
+        zoom = get_zoom_from_payload(data) #Has changes
+        id = get_droneid_from_payload(data) #Keeps the same
+
+        #Deprecated
         x_pos = get_x_position_from_payload(data)
         y_pos = get_y_position_from_payload(data)
         z_pos = get_z_position_from_payload(data)
-        islanded = get_islanded_from_payload(data)
+
+        #TODO: Define order of vectors. New would be (not in that order)
+        # normal_mag = get_normal_from_payload(data)
+        # frontal_mag = get_frontal_from_payload(data)
+        # binormal_mag = get_binormal_from_payload(data)
+
+        is_landed = get_is_landed_from_payload(data)
 
         print("zoom is :" + str(zoom))
         print("id is : "+str(id))
@@ -121,21 +146,22 @@ def begin_listening(socket, PORT, map):
         print("x: " + str(oldX + x_pos))
         print("y: " + str(oldY + y_pos))
         print("z: " + str(oldZ + z_pos))
-        print("Landed: " + str(islanded))
+        print("Landed: " + str(is_landed))
 
-        colision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
+        collision = f.verifyCollision(oldX, oldZ, oldX + x_pos, oldY + y_pos, oldZ + z_pos, map)
         oldX += x_pos
         oldY += y_pos
         oldZ += z_pos
 
-        if colision == -1:
+        if collision == -1:
             return 0
 
-        if islanded:
+        if is_landed:
             return 1
 
         map_str = parse_drone_map_to_string(oldX, oldZ, zoom, map)
 
+        #TODO: implement new methods from server payload here
         payload.add_drone_map(map_str)
         payload.add_drone_id(zoom)
         payload.add_drone_zoom(id)

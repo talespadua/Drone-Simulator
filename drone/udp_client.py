@@ -20,12 +20,44 @@ def create_socket():
         print('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
         sys.exit()
 
-def get_droneid_from_payload(payload):
-    id = struct.unpack('B', payload[1:2])[0]
+def get_drone_id_from_payload(payload):
+    id = struct.unpack('B', payload[0:1])[0]
     return id
 
+#TODO: implemment next 7 methods, relative to last committee changes
+def get_message_type(payload):
+    msg_type = struct.unpack('B', payload[1:2])[0]
+    return msg_type
+
+def get_message_id(payload):
+    msg_id = struct.unpack('B', payload[2:3])[0]
+    return msg_id
+
+def get_normal_wind(payload):
+    normal_wind = struct.unpack('>i', payload[3:7])[0]
+    return normal_wind
+
+def get_frontal_wind(payload):
+    frontal_wind = struct.unpack('>i', payload[7:11][0])
+    return frontal_wind
+
+def get_binormal_wind(payload):
+    binormal_wind = struct.unpack('>i', payload[11:15])[0]
+    return binormal_wind
+
+def get_gps_posx(payload):
+    gps_posx = struct.unpack('>I', payload[15:19])[0]
+    return gps_posx
+
+def get_gps_posy(payload):
+    gps_posy = struct.unpack('>I', payload[19:23])[0]
+    return gps_posy
+#END NEW METHODS
+
+#TODO: uncomment line and delete the uncommented to implemment new committee changes
 def get_zoom_from_payload(payload):
     zoom = struct.unpack('B', payload[0:1])[0]
+    #zoom = struct.unpack('B', payload[23:24])[0]
     return zoom
 
 def get_map_from_payload(payload):
@@ -85,9 +117,19 @@ def begin_streaming(s, HOST, PORT, drone):
             if drone.islanding:
                 return 1
 
-            id = get_droneid_from_payload(reply)
+            id = get_drone_id_from_payload(reply)
             zoom = get_zoom_from_payload(reply)
             map = get_map_from_payload(reply)
+
+            #TODO: uncomment these changes from new committee when its approved
+            # msg_id = get_message_id(reply)
+            # msg_type = get_message_type(reply)
+            # wind_normal = get_normal_wind(reply)
+            # wind_frontal = get_frontal_wind(reply)
+            # wind_binormal = get_binormal_wind(reply)
+            # gps_posx = get_gps_posx(reply)
+            # gps_posy = get_gps_posy(reply)
+
 
             print("Server reply:")
             print("Drone id: "+str(id))
