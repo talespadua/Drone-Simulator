@@ -103,15 +103,11 @@ def parse_map_from_server(server_map):
 def begin_streaming(s, host, port, drone):
     #first request
     input("Press ENTER to begin streaming")
-    params = PayloadProperties()
-    params.port = port
-    params.id = drone.id
-    params.zoom = drone.zoom
     payload = ClientPayload()
-    payload.add_params(params)
-    payload.add_drone_xpos(drone.dx)
-    payload.add_drone_ypos(drone.dy)
-    payload.add_drone_zpos(drone.dz)
+    #TODO: implement vector approach
+    # payload.add_drone_xpos(drone.dx)
+    # payload.add_drone_ypos(drone.dy)
+    # payload.add_drone_zpos(drone.dz)
     payload.add_drone_land_info(drone.islanding)
 
     while 1:
@@ -131,14 +127,14 @@ def begin_streaming(s, host, port, drone):
             zoom = get_zoom_from_payload(reply)
             server_map = get_map_from_payload(reply)
 
-            #TODO: uncomment these changes from new committee when its approved
-            # msg_id = get_message_id(reply)
-            # msg_type = get_message_type(reply)
-            # wind_normal = get_normal_wind(reply)
-            # wind_frontal = get_frontal_wind(reply)
-            # wind_binormal = get_binormal_wind(reply)
-            # gps_posx = get_gps_pos_x(reply)
-            # gps_posy = get_gps_pos_y(reply)
+            #Methods from last changes
+            msg_id = get_message_id(reply)
+            msg_type = get_message_type(reply)
+            wind_normal = get_normal_wind(reply)
+            wind_frontal = get_frontal_wind(reply)
+            wind_binormal = get_binormal_wind(reply)
+            gps_posx = get_gps_pos_x(reply)
+            gps_posy = get_gps_pos_y(reply)
 
             print("Server reply:")
             print("Drone id: "+str(drone_id))
@@ -148,8 +144,6 @@ def begin_streaming(s, host, port, drone):
             map_matrix = parse_map_from_server(map)
 
             print(map_matrix)
-
-            payload = ClientPayload()
 
             if drone.zoom > 1:
                 setores = drone.addPontos(map_matrix)

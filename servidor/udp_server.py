@@ -58,30 +58,11 @@ def get_drone_id_from_payload(payload):
     return drone_id
 
 
-#TODO: Uncomment line to get new version of committee
 def get_zoom_from_payload(payload):
-    zoom = struct.unpack('B', payload[5:6])[0]
-    #zoom = struct.unpack('B', payload[7:8])[0]
+    zoom = struct.unpack('B', payload[7:8])[0]
     return zoom
 
 
-#TODO: Delete next 3 methods after implementing new methods for vector movement
-def get_x_position_from_payload(payload):
-    x_pos = struct.unpack('>i', payload[6:10])[0]
-    return x_pos
-
-
-def get_y_position_from_payload(payload):
-    y_pos = struct.unpack('>i', payload[10:14])[0]
-    return y_pos
-
-
-def get_z_position_from_payload(payload):
-    z_pos = struct.unpack('>i', payload[14:18])[0]
-    return z_pos
-
-
-#TODO: implement next 3 methods for vector movement. Care with vector order, still not decided
 def get_normal_from_payload(payload):
     x_pos = struct.unpack('>i', payload[8:12])[0]
     return x_pos
@@ -138,41 +119,33 @@ def begin_listening(sock, port, server_map):
         print("The data received is: " + str(data))
 
         #PARSE DATA FROM DRONE
-        #TODO: Uncomment methods from new committee agreement
-        drone_port = get_port_from_payload(data) #keeps the same
-        zoom = get_zoom_from_payload(data) #Has changes
-        drone_id = get_drone_id_from_payload(data) #Keeps the same
+        drone_port = get_port_from_payload(data)
+        zoom = get_zoom_from_payload(data)
+        drone_id = get_drone_id_from_payload(data)
 
         #Deprecated
-        x_pos = get_x_position_from_payload(data)
-        y_pos = get_y_position_from_payload(data)
-        z_pos = get_z_position_from_payload(data)
+        # x_pos = get_x_position_from_payload(data)
+        # y_pos = get_y_position_from_payload(data)
+        # z_pos = get_z_position_from_payload(data)
 
-        #TODO: Define order of vectors. New would be (not in that order)
-        # normal_mag = get_normal_from_payload(data)
-        # frontal_mag = get_frontal_from_payload(data)
-        # binormal_mag = get_binormal_from_payload(data)
+        #TODO: Implement landed calculation with new payload format
+        normal_mag = get_normal_from_payload(data)
+        frontal_mag = get_frontal_from_payload(data)
+        binormal_mag = get_binormal_from_payload(data)
 
         is_landed = get_is_landed_from_payload(data)
 
-        print("zoom is :" + str(zoom))
-        print("id is : "+str(drone_id))
-        print("Drone positions: ")
-        print("x: " + str(old_x + x_pos))
-        print("y: " + str(old_y + y_pos))
-        print("z: " + str(old_z + z_pos))
-        print("Landed: " + str(is_landed))
 
-        collision = f.verifyCollision(old_x, old_z, old_x + x_pos, old_y + y_pos, old_z + z_pos, map)
-        old_x += x_pos
-        old_y += y_pos
-        old_z += z_pos
-
-        if collision == -1:
-            return 0
-
-        if is_landed:
-            return 1
+        # collision = f.verifyCollision(old_x, old_z, old_x + x_pos, old_y + y_pos, old_z + z_pos, map)
+        # old_x += x_pos
+        # old_y += y_pos
+        # old_z += z_pos
+        #
+        # if collision == -1:
+        #     return 0
+        #
+        # if is_landed:
+        #     return 1
 
         map_str = parse_drone_map_to_string(old_x, old_z, zoom, server_map)
 
@@ -184,6 +157,7 @@ def begin_listening(sock, port, server_map):
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
         sock.sendto(payload.payload, addr)
+        return 0
 
 
 def main():

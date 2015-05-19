@@ -188,10 +188,11 @@ class Drone:
         params.id = self.id
         params.zoom = self.zoom
         payload = ClientPayload()
-        payload.add_params(params)
-        payload.add_drone_xpos(self.dx)
-        payload.add_drone_ypos(self.dy)
-        payload.add_drone_zpos(self.dz)
+        #TODO: Implement vector approach
+        # payload.add_params(params)
+        # payload.add_drone_xpos(self.dx)
+        # payload.add_drone_ypos(self.dy)
+        # payload.add_drone_zpos(self.dz)
         payload.add_drone_land_info(self.islanding)
         if self.islanding:
             print("\n\nPouso executado com sucesso. Encerrando simulação...")
