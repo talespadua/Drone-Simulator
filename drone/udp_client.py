@@ -62,12 +62,10 @@ def get_gps_pos_x(payload):
 def get_gps_pos_y(payload):
     gps_posy = struct.unpack('>I', payload[19:23])[0]
     return gps_posy
-#END NEW METHODS
 
-#TODO: uncomment line and delete the uncommented to implemment new committee changes
+
 def get_zoom_from_payload(payload):
-    zoom = struct.unpack('B', payload[0:1])[0]
-    #zoom = struct.unpack('B', payload[23:24])[0]
+    zoom = struct.unpack('B', payload[23:24])[0]
     return zoom
 
 
