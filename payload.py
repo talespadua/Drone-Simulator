@@ -62,7 +62,6 @@ class ServerPayload():
 
 
 #Payload drone -> server
-#TODO: Implement new method on udp_client
 class ClientPayload:
     def __init__(self):
         self.payload = bytearray(512)
@@ -75,10 +74,6 @@ class ClientPayload:
 
     def add_drone_binormal_vector(self, value):
         struct.pack_into('>i', self.payload, 16, int(value))
-
-    #TODO: Waiting committee. But probably in position 20
-    def add_drone_land_info(self, islanded):
-        struct.pack_into('?', self.payload, 20, islanded)
 
     def add_port(self, port):
         struct.pack_into('>I', self.payload, 0, int(port))
