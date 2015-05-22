@@ -45,7 +45,7 @@ def get_normal_wind(payload):
 
 
 def get_frontal_wind(payload):
-    frontal_wind = struct.unpack('>i', payload[7:11][0])
+    frontal_wind = struct.unpack('>i', payload[7:11])[0]
     return frontal_wind
 
 
@@ -59,9 +59,9 @@ def get_gps_pos_x(payload):
     return gps_posx
 
 
-def get_gps_pos_y(payload):
-    gps_posy = struct.unpack('>I', payload[19:23])[0]
-    return gps_posy
+def get_gps_pos_z(payload):
+    gps_posz = struct.unpack('>I', payload[19:23])[0]
+    return gps_posz
 
 
 def get_zoom_from_payload(payload):
@@ -74,8 +74,8 @@ def get_map_from_payload(payload):
 
     for pad in range(61, 511):
         server_map.append(struct.unpack('B', payload[pad:pad + 1])[0])
-    return map
 
+    return server_map
 
 def parse_map_from_server(server_map):
     map_matrix = np.zeros((15, 15))
@@ -106,7 +106,7 @@ def begin_streaming(s, host, port, drone):
     # payload.add_drone_xpos(drone.dx)
     # payload.add_drone_ypos(drone.dy)
     # payload.add_drone_zpos(drone.dz)
-    payload.add_drone_land_info(drone.islanding)
+    #payload.add_drone_land_info(drone.islanding)
 
     while 1:
         try:
@@ -132,14 +132,14 @@ def begin_streaming(s, host, port, drone):
             wind_frontal = get_frontal_wind(reply)
             wind_binormal = get_binormal_wind(reply)
             gps_posx = get_gps_pos_x(reply)
-            gps_posy = get_gps_pos_y(reply)
+            gps_posz = get_gps_pos_z(reply)
 
             print("Server reply:")
             print("Drone id: "+str(drone_id))
             print("Drone zoom: "+str(zoom))
             #print("Drone Map: "+str(map))
 
-            map_matrix = parse_map_from_server(map)
+            map_matrix = parse_map_from_server(server_map)
 
             print(map_matrix)
 

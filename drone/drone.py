@@ -43,7 +43,7 @@ class Drone:
 
     def addPontos(self, pontos):
         setores = list()
-        for i in range(9):
+        for i in range(4):
             setores.append(list())
 
         for x in range(15):
@@ -61,21 +61,18 @@ class Drone:
                     if pMapa not in self.mapa:
                         self.mapa.append(pMapa)
 
-                #define setor ao qual o ponto pertence
-                a = 2
-                b = 2
+                #Adiciona pontos aos setores
+                if x < 10:
+                    if z < 10:
+                        setores[0].append(p)
+                    if 5 <= z < 15:
+                        setores[2].append(p)
 
-                if x < 5:
-                    a = 0
-                elif x < 10:
-                    a = 1
-
-                if z >= 10:
-                    b = 0
-                elif z >= 5:
-                    b = 1
-
-                setores[3 * b + a].append(p)
+                if 5 <= x < 15:
+                    if z < 10:
+                        setores[1].append(p)
+                    if 5 <= z < 15:
+                        setores[3].append(p)
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
@@ -90,17 +87,17 @@ class Drone:
 
         firstValid = 0
 
-        # calc por variancia
-        for s in setores:
+        #calc por variancia
+        for pts in setores:
             soma = 0
-            ptos = 0
+            nPtos = 0
 
             setorNeg = 0
 
-            for h in s:
+            for h in pts:
                 if h.y >= 0:
                     soma += h.y
-                    ptos += 1
+                    nPtos += 1
                 else:
                     setorNeg = 1
                     break
@@ -108,14 +105,14 @@ class Drone:
             # Verifica se no setor há algum ponto inválido
             if setorNeg == 0:
                 firstValid = 1
-                med = float(soma / ptos)
+                med = float(soma / nPtos)
 
                 sVar = 0
 
-                for h in s:
+                for h in pts:
                     sVar += pow(h.y - med, 2)
 
-                var = float(sVar / ptos - 1)
+                var = float(sVar / nPtos - 1)
 
 
                 if firstValid == 1:
@@ -129,8 +126,8 @@ class Drone:
 
             i += 1
 
-        x = self.zoom
-        z = self.zoom
+        x = 2 * self.zoom
+        z = 2 * self.zoom
 
         #Caso a média ou variância seja muito alta ou nenhum setor tenha sido escolhido
         #Vale alterar possíveis valores de cVar (no caso, aqui ele também é influenciado pelo zoom)
@@ -140,19 +137,15 @@ class Drone:
                 self.zoom += 1
 
             #Move um pouco p/pegar área diferente
-            self.moveBy(randint(-3, 3), 0, randint(-3, 3))
+            self.moveBy(randint(-5, 5), 0, randint(-5, 5))
             return self.sendPayload()
 
         #Escolhe setor
-        if choice in [3, 4, 5]:
-            z = 0
-        elif choice in [6, 7, 8]:
+        if choice in [0, 2]:
+            x = -x
+        if choice in [2, 3]:
             z = -z
 
-        if choice in [0, 3, 6]:
-            x = -x
-        elif choice in [1, 4, 7]:
-            x = 0
 
         #De acordo com o zoom, reduz altitude
         y = (- self.absY + cMed) / self.zoom
@@ -178,7 +171,7 @@ class Drone:
                     self.islanding = True
                     return self.sendPayload()
 
-        self.zoom -= 1
+        self.zoom += 1
         self.moveBy(randint(-5, 5), 10, randint(-5, 5))
         return self.sendPayload()
 
@@ -189,11 +182,17 @@ class Drone:
         params.zoom = self.zoom
         payload = ClientPayload()
         #TODO: Implement vector approach
-        # payload.add_params(params)
-        # payload.add_drone_xpos(self.dx)
-        # payload.add_drone_ypos(self.dy)
-        # payload.add_drone_zpos(self.dz)
-        payload.add_drone_land_info(self.islanding)
+        #payload.add_params(params)
+        #payload.add_drone_xpos(self.dx)
+        #payload.add_drone_ypos(self.dy)
+        #payload.add_drone_zpos(self.dz)
+        #payload.add_drone_land_info(self.islanding)
+
+        #Por hora, usando frontal=x, normal=z, binormal=y
+        payload.add_drone_frontal_vector(self.dx)
+        payload.add_drone_normal_vector(self.dz)
+        payload.add_drone_binormal_vector(self.dz)
+
         if self.islanding:
             print("\n\nPouso executado com sucesso. Encerrando simulação...")
         return payload

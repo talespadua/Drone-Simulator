@@ -37,8 +37,8 @@ class ServerPayload():
     def add_gps_posx(self, posx):
         struct.pack_into('>I', self.payload, 15, int(posx))
 
-    def add_gps_posy(self, posy):
-        struct.pack_into('>I', self.payload, 19, int(posy))
+    def add_gps_posz(self, posz):
+        struct.pack_into('>I', self.payload, 19, int(posz))
 
     def add_drone_map(self, map):
         #sherolero = bytearray(map, "utf-8")
