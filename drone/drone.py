@@ -10,7 +10,7 @@ class Ponto:
 class Drone:
     def __init__(self):
         self.dx = 0
-        self.dy = 80
+        self.dy = 0
         self.dz = 0
         self.absY = 80
 
@@ -150,7 +150,7 @@ class Drone:
         #De acordo com o zoom, reduz altitude
         y = (- self.absY + cMed) / self.zoom
 
-        self.moveBy(x, y, z)
+        self.moveBy(x, int(y), z)
 
         self.zoom -= 1
         if self.zoom == 0:
@@ -188,10 +188,10 @@ class Drone:
         #payload.add_drone_zpos(self.dz)
         #payload.add_drone_land_info(self.islanding)
 
-        #Por hora, usando frontal=x, normal=z, binormal=y
-        payload.add_drone_frontal_vector(self.dx)
-        payload.add_drone_normal_vector(self.dz)
-        payload.add_drone_binormal_vector(self.dz)
+        #Por hora, usando frontal=z, binormal=y, normal=x
+        payload.add_drone_frontal_vector(self.dz)
+        payload.add_drone_normal_vector(self.dx)
+        payload.add_drone_binormal_vector(self.dy)
 
         if self.islanding:
             print("\n\nPouso executado com sucesso. Encerrando simulação...")

@@ -65,16 +65,19 @@ def get_zoom_from_payload(payload):
 
 def get_normal_from_payload(payload):
     x_pos = struct.unpack('>i', payload[8:12])[0]
+    print(x_pos)
     return x_pos
 
 
 def get_frontal_from_payload(payload):
     z_pos = struct.unpack('>i', payload[12:16])[0]
+    print(z_pos)
     return z_pos
 
 
 def get_binormal_from_payload(payload):
     y_pos = struct.unpack('>i', payload[16:20])[0]
+    print(y_pos)
     return y_pos
 
 
@@ -106,8 +109,10 @@ def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
     old_x = randint(10, server_map.x_size - 11)
-    old_y = 0
+    old_y = 80
     old_z = randint(10, server_map.z_size - 11)
+
+    print("drone init: %d %d %d" %(old_x, old_y, old_z))
 
     while 1:
         # receive data from drone (data, addr)
@@ -133,19 +138,22 @@ def begin_listening(sock, port, server_map):
         frontal_mag = get_frontal_from_payload(data)
         binormal_mag = get_binormal_from_payload(data)
 
+        print(normal_mag, binormal_mag, frontal_mag)
+
         is_landed = get_is_landed_from_payload(data)
 
+        #Por hora, usando frontal=z, binormal=y, normal=x
 
-        # collision = f.verifyCollision(old_x, old_z, old_x + x_pos, old_y + y_pos, old_z + z_pos, map)
-        # old_x += x_pos
-        # old_y += y_pos
-        # old_z += z_pos
-        #
-        # if collision == -1:
-        #     return 0
-        #
-        # if is_landed:
-        #     return 1
+        collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, map)
+        old_x += normal_mag
+        old_y += binormal_mag
+        old_z += frontal_mag
+
+        if collision == -1:
+            return 0
+
+        if is_landed:
+            return 1
 
         map_str = parse_drone_map_to_string(old_x, old_z, zoom, server_map)
 

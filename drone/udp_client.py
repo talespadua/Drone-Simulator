@@ -108,6 +108,8 @@ def begin_streaming(s, host, port, drone):
     # payload.add_drone_zpos(drone.dz)
     #payload.add_drone_land_info(drone.islanding)
 
+
+
     while 1:
         try:
             #Send payload
@@ -121,9 +123,12 @@ def begin_streaming(s, host, port, drone):
             if drone.islanding:
                 return 1
 
-            drone_id = get_drone_id_from_payload(reply)
-            zoom = get_zoom_from_payload(reply)
+            #drone_id = get_drone_id_from_payload(reply)
+            #zoom = get_zoom_from_payload(reply)
             server_map = get_map_from_payload(reply)
+
+            drone_id = drone.id
+            zoom = drone.zoom
 
             #Methods from last changes
             msg_id = get_message_id(reply)
@@ -137,10 +142,8 @@ def begin_streaming(s, host, port, drone):
             print("Server reply:")
             print("Drone id: "+str(drone_id))
             print("Drone zoom: "+str(zoom))
-            #print("Drone Map: "+str(map))
 
             map_matrix = parse_map_from_server(server_map)
-
             print(map_matrix)
 
             if drone.zoom > 1:
