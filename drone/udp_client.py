@@ -25,6 +25,7 @@ def create_socket():
 
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[0:1])[0]
+    print("Drone ID: %d" %(drone_id))
     return drone_id
 
 
