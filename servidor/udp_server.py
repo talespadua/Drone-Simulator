@@ -50,34 +50,36 @@ def bind_socket(sock, host, port):
 
 def get_port_from_payload(payload):
     port = struct.unpack('I', payload[0:4])[0]
+    print(int(port))
     return port
 
 
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[4:5])[0]
+    print(int(drone_id))
     return drone_id
-
 
 def get_zoom_from_payload(payload):
     zoom = struct.unpack('B', payload[7:8])[0]
+    print(int(zoom))
     return zoom
 
 
 def get_normal_from_payload(payload):
     x_pos = struct.unpack('>i', payload[8:12])[0]
-    print(x_pos)
+    print(int(x_pos))
     return x_pos
 
 
 def get_frontal_from_payload(payload):
     z_pos = struct.unpack('>i', payload[12:16])[0]
-    print(z_pos)
+    print(int(z_pos))
     return z_pos
 
 
 def get_binormal_from_payload(payload):
     y_pos = struct.unpack('>i', payload[16:20])[0]
-    print(y_pos)
+    print(int(y_pos))
     return y_pos
 
 
@@ -138,13 +140,13 @@ def begin_listening(sock, port, server_map):
         frontal_mag = get_frontal_from_payload(data)
         binormal_mag = get_binormal_from_payload(data)
 
-        print(normal_mag, binormal_mag, frontal_mag)
+        print(normal_mag, binormal_mag, frontal_mag, drone_id, drone_port, zoom)
 
         is_landed = get_is_landed_from_payload(data)
 
         #Por hora, usando frontal=z, binormal=y, normal=x
 
-        collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, map)
+        collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, server_map)
         old_x += normal_mag
         old_y += binormal_mag
         old_z += frontal_mag

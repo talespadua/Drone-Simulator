@@ -151,6 +151,7 @@ def begin_streaming(s, host, port, drone):
                 payload = drone.chooseDirection(setores)
             else:
                 payload = drone.testePouso(map_matrix)
+
             if not drone.islanding:
                 input("Press enter to send next payload")
 

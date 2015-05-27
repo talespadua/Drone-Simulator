@@ -176,11 +176,12 @@ class Drone:
         return self.sendPayload()
 
     def sendPayload(self):
-        params = PayloadProperties()
-        params.port = self.port
-        params.id = self.id
-        params.zoom = self.zoom
         payload = ClientPayload()
+
+        payload.add_port(self.port)
+        payload.add_id(self.id)
+        payload.add_zoom(self.zoom)
+
         #TODO: Implement vector approach
         #payload.add_params(params)
         #payload.add_drone_xpos(self.dx)
@@ -189,10 +190,11 @@ class Drone:
         #payload.add_drone_land_info(self.islanding)
 
         #Por hora, usando frontal=z, binormal=y, normal=x
-        payload.add_drone_frontal_vector(self.dz)
         payload.add_drone_normal_vector(self.dx)
+        payload.add_drone_frontal_vector(self.dz)
         payload.add_drone_binormal_vector(self.dy)
 
         if self.islanding:
             print("\n\nPouso executado com sucesso. Encerrando simulação...")
+
         return payload
