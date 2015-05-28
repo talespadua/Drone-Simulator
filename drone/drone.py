@@ -141,7 +141,7 @@ class Drone:
 
             #Move um pouco p/pegar área diferente
             self.moveBy(randint(-5, 5), 0, randint(-5, 5))
-            return self.sendPayload()
+            return self.sendPayload(payload)
 
         #Escolhe setor
         if choice in [1, 3]:

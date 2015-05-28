@@ -118,9 +118,9 @@ def begin_streaming(s, host, port, drone):
     payload.add_msg_type(msg_type)
     payload.add_zoom(zoom)
 
-    payload.add_drone_normal_vector(0)
-    payload.add_drone_frontal_vector(0)
-    payload.add_drone_binormal_vector(0)
+    payload.add_drone_normal_vector(129)
+    payload.add_drone_frontal_vector(77)
+    payload.add_drone_binormal_vector(40)
 
     while 1:
         try:

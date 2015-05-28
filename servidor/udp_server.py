@@ -49,7 +49,7 @@ def bind_socket(sock, host, port):
 
 
 def get_port_from_payload(payload):
-    port = struct.unpack('I', payload[0:4])[0]
+    port = struct.unpack('>I', payload[0:4])[0]
     return port
 
 
@@ -64,7 +64,7 @@ def get_message_type(payload):
 
 
 def get_message_id(payload):
-    msg_id = struct.unpack('B', payload[5:6])
+    msg_id = struct.unpack('B', payload[5:6])[0]
     return msg_id
 
 
@@ -115,7 +115,7 @@ def begin_listening(sock, port, server_map):
     pos_y = 80
     pos_z = randint(10, server_map.z_size - 11)
     drone_list = []
-    print("drone init: %d %d %d" %(old_x, old_y, old_z))
+    print("drone init: %d %d %d" %(pos_x, pos_y, pos_z))
 
     normal_wind = randint(0, 1000)
     frontal_wind = randint(0, 1000)
