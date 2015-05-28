@@ -82,7 +82,7 @@ class Drone:
 
         return setores
 
-    def chooseDirection(self, setores):
+    def chooseDirection(self, setores, payload):
         i = 0
         choice = -1
         cMed = 0
@@ -163,7 +163,7 @@ class Drone:
         if self.zoom == 0:
             self.zoom += 3 # zoom não pode ser 0, ele encerra erradamente, pousando no mesmo espaço.
 
-        return self.sendPayload()
+        return self.sendPayload(payload)
 
     def testePouso(self, pontos):
         print("TestePouso")
@@ -182,8 +182,7 @@ class Drone:
         self.moveBy(randint(-5, 5), 10, randint(-5, 5))
         return self.sendPayload()
 
-    def sendPayload(self):
-        payload = ClientPayload()
+    def sendPayload(self, payload):
 
         payload.add_port(self.port)
         payload.add_id(self.id)
