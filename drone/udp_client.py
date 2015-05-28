@@ -101,7 +101,7 @@ def parse_map_from_server(server_map):
 
 def begin_streaming(s, host, port, drone):
     #first request
-    drone_id = drone.id
+    drone_id = drone.drone_id
     zoom = drone.zoom
     msg_id = 0
     msg_type = 0

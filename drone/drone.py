@@ -19,7 +19,7 @@ class Drone:
         self.zoom = 5
 
         self.port = 0
-        self.id = randint(0, 255)
+        self.drone_id = randint(0, 255)
 
         self.islanding = False
 
@@ -184,8 +184,10 @@ class Drone:
 
     def sendPayload(self, payload):
 
+        #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
+        #Passar muitos parâmetros, como das mensagens
         payload.add_port(self.port)
-        payload.add_id(self.id)
+        payload.add_drone_id(self.drone_id)
         payload.add_zoom(self.zoom)
 
         #TODO: Implement vector approach
