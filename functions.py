@@ -1,5 +1,6 @@
 from queue import Queue
 import numpy as np
+from random import randint
 
 # Este método prepara uma matriz 15x15 dada a posição de um drone, e seu zoom. Ele devolve a matriz.
 def getArrayToDrone(sentX, sentZ, zoom, mapa):
@@ -31,6 +32,25 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
                 #y_pos = mapa[baseX + (zoom * i)][baseZ + (zoom * j)]  # Mapa deve ser global
             else:
                 returningArray.itemset((i, j), 255)
+
+
+    # Parte de imprecisão. Vale notar que ele distribui erro numa alta chance de sucesso, sendo portanto uma margem bem pequena de erro (30%)
+    for i in range(0, 15):
+        for j in range(0, 15):
+            newValue = returningArray.item(i, j)
+            randomizer = randint(1,10000)
+
+            if randomizer <= 1500:
+                newValue = newValue - 1
+            if randomizer >= 8500:
+                newValue = newValue + 1
+            if randomizer > 9700:
+                newValue = newValue + 2
+            if randomizer < 300:
+                newValue = newValue - 2
+
+            returningArray.itemset((i, j), newValue)
+
 
     print("Matrix generated")
     return returningArray
