@@ -23,6 +23,12 @@ class Drone:
 
         self.islanding = False
 
+        #Limites seguros de locomoção
+        self.northLimit = 2 * self.zoom
+        self.southLimit = 2 * self.zoom
+        self.eastLimit = 2 * self.zoom
+        self.westLimit = 2 * self.zoom
+
         self.mapa = list()
         self.pontoInicial = Ponto(self.dx, self.dy, self.dz)
         self.pontoCentral = self.pontoInicial
@@ -40,6 +46,35 @@ class Drone:
         self.pontoCentral.x += x
         self.pontoCentral.y += y
         self.pontoCentral.z += z
+
+        #Atualiza limites seguros
+        self.northLimit -= self.dz
+        self.southLimit += self.dz
+        self.eastLimit -= self.dx
+        self.westLimit += self.dx
+
+        print(self.northLimit, self.southLimit, self.eastLimit, self.westLimit)
+
+    def setSafeLimits(self, pontos):
+        if not -1 < pontos[7][0] < self.absY - 5:
+            self.northLimit = self.zoom
+        else:
+            self.northLimit = 0
+
+        if not -1 < pontos[7][14] < self.absY - 5:
+            self.southLimit = self.zoom
+        else:
+            self.southLimit = 0
+
+        if not -1 < pontos[0][7] < self.absY - 5:
+            self.westLimit = self.zoom
+        else:
+            self.westLimit = 0
+
+        if not -1 < pontos[14][7] < self.absY - 5:
+            self.eastLimit = self.zoom
+        else:
+            self.eastLimit = 0
 
     def addPontos(self, pontos):
         setores = list()
@@ -79,6 +114,8 @@ class Drone:
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
+
+        self.setSafeLimits(pontos)
 
         return setores
 
@@ -140,7 +177,7 @@ class Drone:
                 self.zoom += 1
 
             #Move um pouco p/pegar área diferente
-            self.moveBy(randint(-5, 5), 0, randint(-5, 5))
+            self.moveBy(randint(-self.westLimit, self.eastLimit), 0, randint(-self.southLimit, self.northLimit))
             return self.sendPayload(payload)
 
         #Escolhe setor
@@ -179,15 +216,13 @@ class Drone:
                     return self.sendPayload()
 
         self.zoom += 1
-        self.moveBy(randint(-5, 5), 10, randint(-5, 5))
+        self.moveBy(randint(-self.westLimit, self.eastLimit), 10, randint(-self.southLimit, self.northLimit))
         return self.sendPayload()
 
     def sendPayload(self, payload):
 
         #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
         #Passar muitos parâmetros, como das mensagens
-        payload.add_port(self.port)
-        payload.add_drone_id(self.drone_id)
         payload.add_zoom(self.zoom)
 
         #TODO: Implement vector approach
