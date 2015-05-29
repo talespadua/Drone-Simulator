@@ -49,43 +49,43 @@ def bind_socket(sock, host, port):
 
 
 def get_port_from_payload(payload):
-    port = struct.unpack('I', payload[0:4])[0]
-    print(int(port))
+    port = struct.unpack('>I', payload[0:4])[0]
     return port
 
 
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[4:5])[0]
-    print(int(drone_id))
     return drone_id
+
+
+def get_message_type(payload):
+    msg_type = struct.unpack('B', payload[6:7])[0]
+    return msg_type
+
+
+def get_message_id(payload):
+    msg_id = struct.unpack('B', payload[5:6])[0]
+    return msg_id
+
 
 def get_zoom_from_payload(payload):
     zoom = struct.unpack('B', payload[7:8])[0]
-    print(int(zoom))
     return zoom
 
 
 def get_normal_from_payload(payload):
     x_pos = struct.unpack('>i', payload[8:12])[0]
-    print(int(x_pos))
     return x_pos
 
 
 def get_frontal_from_payload(payload):
     z_pos = struct.unpack('>i', payload[12:16])[0]
-    print(int(z_pos))
     return z_pos
 
 
 def get_binormal_from_payload(payload):
     y_pos = struct.unpack('>i', payload[16:20])[0]
-    print(int(y_pos))
     return y_pos
-
-
-def get_is_landed_from_payload(payload):
-    is_landed = struct.unpack('?', payload[18:19])[0]
-    return is_landed
 
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
@@ -110,11 +110,16 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
     soup = load_to_soup('../mapas/DotaMap.xml')
-    old_x = randint(10, server_map.x_size - 11)
-    old_y = 80
-    old_z = randint(10, server_map.z_size - 11)
 
-    print("drone init: %d %d %d" %(old_x, old_y, old_z))
+    pos_x = randint(10, server_map.x_size - 11)
+    pos_y = 80
+    pos_z = randint(10, server_map.z_size - 11)
+    drone_list = []
+    print("drone init: %d %d %d" %(pos_x, pos_y, pos_z))
+
+    normal_wind = randint(0, 1000)
+    frontal_wind = randint(0, 1000)
+    binormal_wind = randint(0, 1000)
 
 
     xwind = randint(-10, 10)
@@ -135,49 +140,58 @@ def begin_listening(sock, port, server_map):
         print("The data received is: " + str(data))
 
         #PARSE DATA FROM DRONE
+        drone_id = get_drone_id_from_payload(data)
+        if drone_id not in drone_list:
+            drone_list.append(drone_id)
+
+        msg_type = get_message_type(data)
+        msg_id = get_message_id(data)
         drone_port = get_port_from_payload(data)
         zoom = get_zoom_from_payload(data)
-        drone_id = get_drone_id_from_payload(data)
-
-        #Deprecated
-        # x_pos = get_x_position_from_payload(data)
-        # y_pos = get_y_position_from_payload(data)
-        # z_pos = get_z_position_from_payload(data)
 
         #TODO: Implement landed calculation with new payload format
-        normal_mag = get_normal_from_payload(data)
-        frontal_mag = get_frontal_from_payload(data)
-        binormal_mag = get_binormal_from_payload(data)
-
-        print(normal_mag, binormal_mag, frontal_mag, drone_id, drone_port, zoom)
-
-        is_landed = get_is_landed_from_payload(data)
+        #Last drone movement
+        normal_mov = get_normal_from_payload(data)
+        frontal_mov = get_frontal_from_payload(data)
+        binormal_mov = get_binormal_from_payload(data)
 
         #Por hora, usando frontal=z, binormal=y, normal=x
 
-        collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, server_map)
-        old_x += normal_mag
-        old_y += binormal_mag
-        old_z += frontal_mag
+        #TODO: Collision return -1 or 1, but need to cover the case where neither happens
+        # collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, server_map)
+        # pos_x += normal_mag
+        # pos_y += binormal_mag
+        # pos_z += frontal_mag
+
+        collision = 0
 
         if collision == -1:
             return 0
 
-        if is_landed:
+        elif msg_type == 1:
             return 1
 
-        map_str = parse_drone_map_to_string(old_x, old_z, zoom, server_map)
+        map_str = parse_drone_map_to_string(pos_x, pos_z, zoom, server_map)
 
         #TODO: implement new methods from server payload here
+        payload.add_drone_id(drone_id)
+        payload.add_message_type(msg_type)
+        payload.add_message_id(msg_id)
+
+        payload.add_normal_wind(normal_wind)
+        payload.add_frontal_wind(frontal_wind)
+        payload.add_binormal_wind(binormal_wind)
+
+        #TODO: add statistical error
+        payload.add_gps_posx(pos_x)
+        payload.add_gps_posz(pos_z)
+
+        payload.add_drone_zoom(zoom)
         payload.add_drone_map(map_str)
-        payload.add_drone_id(zoom)
-        payload.add_drone_zoom(drone_id)
 
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
         sock.sendto(payload.payload, addr)
-        return 0
-
 
 def main():
     config = get_config('settings.cfg')

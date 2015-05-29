@@ -12,17 +12,14 @@ class ServerPayload():
         self.payload = bytearray(512)
         #Mapa de pontos
 
-    def add_drone_id(self, id):
-        struct.pack_into('B', self.payload, 0, int(id))
+    def add_drone_id(self, drone_id):
+        struct.pack_into('B', self.payload, 0, int(drone_id))
 
-    def add_drone_zoom(self, zoom):
-        struct.pack_into('B', self.payload, 23, int(zoom))
+    def add_message_type(self, msg_type):
+        struct.pack_into('B', self.payload, 1, int(msg_type))
 
-    def add_message_type(self, type):
-        struct.pack_into('B', self.payload, 1, int(type))
-
-    def add_message_id(self, id):
-        struct.pack_into('B', self.payload, 2, int(id))
+    def add_message_id(self, msg_id):
+        struct.pack_into('B', self.payload, 2, int(msg_id))
 
     #TODO: implement turn and movement
     def add_normal_wind(self, value):
@@ -39,6 +36,9 @@ class ServerPayload():
 
     def add_gps_posz(self, posz):
         struct.pack_into('>I', self.payload, 19, int(posz))
+
+    def add_drone_zoom(self, zoom):
+        struct.pack_into('B', self.payload, 23, int(zoom))
 
     def add_drone_map(self, map):
         #sherolero = bytearray(map, "utf-8")
@@ -66,6 +66,21 @@ class ClientPayload:
     def __init__(self):
         self.payload = bytearray(512)
 
+    def add_port(self, port):
+        struct.pack_into('>I', self.payload, 0, int(port))
+
+    def add_drone_id(self, drone_id):
+        struct.pack_into('B', self.payload, 4, int(drone_id))
+
+    def add_msg_id(self, msg_id):
+        struct.pack_into('B', self.payload, 5, int(msg_id))
+
+    def add_msg_type(self, msg_type):
+        struct.pack_into('B', self.payload, 6, int(msg_type))
+
+    def add_zoom(self, zoom):
+        struct.pack_into('B', self.payload, 7, int(zoom))
+
     def add_drone_normal_vector(self, value):
         struct.pack_into('>i', self.payload, 8, int(value))
 
@@ -74,21 +89,6 @@ class ClientPayload:
 
     def add_drone_binormal_vector(self, value):
         struct.pack_into('>i', self.payload, 16, int(value))
-
-    def add_port(self, port):
-        struct.pack_into('>I', self.payload, 0, int(port))
-
-    def add_id(self, id):
-        struct.pack_into('B', self.payload, 4, int(id))
-
-    def add_msg_id(self, id):
-        struct.pack_into('B', self.payload, 5, int(id))
-
-    def add_msg_type(self, msg_type):
-        struct.pack_into('B', self.payload, 6, int(msg_type))
-
-    def add_zoom(self, zoom):
-        struct.pack_into('B', self.payload, 7, int(zoom))
 
     def get_payload(self):
         return self.payload

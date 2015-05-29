@@ -25,6 +25,7 @@ def create_socket():
 
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[0:1])[0]
+    print("Drone ID: %d" %(drone_id))
     return drone_id
 
 
@@ -100,15 +101,26 @@ def parse_map_from_server(server_map):
 
 def begin_streaming(s, host, port, drone):
     #first request
+    drone_id = drone.drone_id
+    zoom = drone.zoom
+    msg_id = 0
+    msg_type = 0
     input("Press ENTER to begin streaming")
+
+    first_round = True
+
     payload = ClientPayload()
-    #TODO: implement vector approach
-    # payload.add_drone_xpos(drone.dx)
-    # payload.add_drone_ypos(drone.dy)
-    # payload.add_drone_zpos(drone.dz)
-    #payload.add_drone_land_info(drone.islanding)
 
+    payload.add_port(port)
+    payload.add_drone_id(drone_id)
 
+    payload.add_msg_id(msg_id)
+    payload.add_msg_type(msg_type)
+    payload.add_zoom(zoom)
+
+    payload.add_drone_normal_vector(129)
+    payload.add_drone_frontal_vector(77)
+    payload.add_drone_binormal_vector(40)
 
     while 1:
         try:
@@ -120,22 +132,21 @@ def begin_streaming(s, host, port, drone):
             reply = d[0]
             addr = d[1]
 
-            if drone.islanding:
-                return 1
-
-            #drone_id = get_drone_id_from_payload(reply)
-            #zoom = get_zoom_from_payload(reply)
             server_map = get_map_from_payload(reply)
 
-            drone_id = drone.id
-            zoom = drone.zoom
-
-            #Methods from last changes
-            msg_id = get_message_id(reply)
             msg_type = get_message_type(reply)
-            wind_normal = get_normal_wind(reply)
-            wind_frontal = get_frontal_wind(reply)
-            wind_binormal = get_binormal_wind(reply)
+            rcv_msg_id = get_message_id(reply)
+
+            #TODO: treat case where msg id are not the same
+            if rcv_msg_id is not msg_id:
+                pass
+
+            if first_round is True:
+                wind_normal = get_normal_wind(reply)
+                wind_frontal = get_frontal_wind(reply)
+                wind_binormal = get_binormal_wind(reply)
+                first_round = False
+
             gps_posx = get_gps_pos_x(reply)
             gps_posz = get_gps_pos_z(reply)
 
@@ -144,16 +155,17 @@ def begin_streaming(s, host, port, drone):
             print("Drone zoom: "+str(zoom))
 
             map_matrix = parse_map_from_server(server_map)
-            print(map_matrix)
+            #print(map_matrix)
 
             if drone.zoom > 1:
                 setores = drone.addPontos(map_matrix)
-                payload = drone.chooseDirection(setores)
+                payload = drone.chooseDirection(setores, payload)
             else:
                 payload = drone.testePouso(map_matrix)
 
-            if not drone.islanding:
-                input("Press enter to send next payload")
+            input("Press enter to send next payload")
+
+            msg_id += 1
 
         except socket.error as msg:
             print('Error Code : ' + str(msg)[1:] + ' Message ' + str(msg))

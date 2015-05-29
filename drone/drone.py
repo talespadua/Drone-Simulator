@@ -19,7 +19,7 @@ class Drone:
         self.zoom = 5
 
         self.port = 0
-        self.id = randint(0, 255)
+        self.drone_id = randint(0, 255)
 
         self.islanding = False
 
@@ -43,7 +43,7 @@ class Drone:
 
     def addPontos(self, pontos):
         setores = list()
-        for i in range(4):
+        for i in range(5):
             setores.append(list())
 
         for x in range(15):
@@ -53,7 +53,7 @@ class Drone:
 
                 p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
 
-                #ignora pontos fora do mapa
+                #ignora pontos fora da memória do drone
                 if p.y > -1:
                     #Adiciona ponto no mapa do drone
                     pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
@@ -64,22 +64,25 @@ class Drone:
                 #Adiciona pontos aos setores
                 if x < 10:
                     if z < 10:
-                        setores[0].append(p)
-                    if 5 <= z < 15:
-                        setores[2].append(p)
-
-                if 5 <= x < 15:
-                    if z < 10:
                         setores[1].append(p)
                     if 5 <= z < 15:
                         setores[3].append(p)
+
+                if 2 <= x < 13 and 2 <= z < 13:
+                    setores[0].append(p)
+
+                if 5 <= x < 15:
+                    if z < 10:
+                        setores[2].append(p)
+                    if 5 <= z < 15:
+                        setores[4].append(p)
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
         return setores
 
-    def chooseDirection(self, setores):
+    def chooseDirection(self, setores, payload):
         i = 0
         choice = -1
         cMed = 0
@@ -138,13 +141,17 @@ class Drone:
 
             #Move um pouco p/pegar área diferente
             self.moveBy(randint(-5, 5), 0, randint(-5, 5))
-            return self.sendPayload()
+            return self.sendPayload(payload)
 
         #Escolhe setor
-        if choice in [0, 2]:
+        if choice in [1, 3]:
             x = -x
-        if choice in [2, 3]:
+        if choice in [3, 4]:
             z = -z
+
+        elif choice == 0:
+            x = 0
+            z = 0
 
 
         #De acordo com o zoom, reduz altitude
@@ -156,7 +163,7 @@ class Drone:
         if self.zoom == 0:
             self.zoom += 3 # zoom não pode ser 0, ele encerra erradamente, pousando no mesmo espaço.
 
-        return self.sendPayload()
+        return self.sendPayload(payload)
 
     def testePouso(self, pontos):
         print("TestePouso")
@@ -175,11 +182,12 @@ class Drone:
         self.moveBy(randint(-5, 5), 10, randint(-5, 5))
         return self.sendPayload()
 
-    def sendPayload(self):
-        payload = ClientPayload()
+    def sendPayload(self, payload):
 
+        #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
+        #Passar muitos parâmetros, como das mensagens
         payload.add_port(self.port)
-        payload.add_id(self.id)
+        payload.add_drone_id(self.drone_id)
         payload.add_zoom(self.zoom)
 
         #TODO: Implement vector approach
@@ -195,6 +203,10 @@ class Drone:
         payload.add_drone_binormal_vector(self.dy)
 
         if self.islanding:
+            payload.add_msg_type(1)
             print("\n\nPouso executado com sucesso. Encerrando simulação...")
+
+        else:
+            payload.add_msg_type(0)
 
         return payload
