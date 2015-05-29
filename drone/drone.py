@@ -16,7 +16,9 @@ class Drone:
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 5
+
+        #Para estratégia de obter vetor de vento
+        self.zoom = 1
 
         self.port = 0
         self.drone_id = randint(0, 255)
@@ -29,9 +31,17 @@ class Drone:
         self.eastLimit = 2 * self.zoom
         self.westLimit = 2 * self.zoom
 
+        #Mapa interno
         self.mapa = list()
         self.pontoInicial = Ponto(self.dx, self.dy, self.dz)
         self.pontoCentral = self.pontoInicial
+
+        #Indicadores de vento
+        self.normalWind = 0
+        self.binormalWind = 0
+        self.frontalWind = 0
+
+        self.flyingTime = 0
 
     def moveBy(self, x, y, z):
         self.dx = x
@@ -52,6 +62,9 @@ class Drone:
         self.southLimit += self.dz
         self.eastLimit -= self.dx
         self.westLimit += self.dx
+
+        #Atualiza tempo de voo
+        self.flyingTime += 1
 
         print(self.northLimit, self.southLimit, self.eastLimit, self.westLimit)
 
@@ -115,11 +128,21 @@ class Drone:
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
+        print("Mapa interno: " + str(self.mapa))
+
         self.setSafeLimits(pontos)
 
         return setores
 
     def chooseDirection(self, setores, payload):
+        if self.flyingTime < 2:
+            self.moveBy(0, 0, 0)
+
+            if self.flyingTime >= 2:
+                self.zoom = 5
+
+            return self.sendPayload(payload)
+
         i = 0
         choice = -1
         cMed = 0
@@ -202,7 +225,7 @@ class Drone:
 
         return self.sendPayload(payload)
 
-    def testePouso(self, pontos):
+    def testePouso(self, pontos, payload):
         print("TestePouso")
         for x in range(-2, 3):
             for z in range(-2, 3):
@@ -213,11 +236,11 @@ class Drone:
                 if y1 == y2 and y2 == y3:
                     self.moveBy(0, -self.absY + y1 + 3, 0)
                     self.islanding = True
-                    return self.sendPayload()
+                    return self.sendPayload(payload)
 
         self.zoom += 1
         self.moveBy(randint(-self.westLimit, self.eastLimit), 10, randint(-self.southLimit, self.northLimit))
-        return self.sendPayload()
+        return self.sendPayload(payload)
 
     def sendPayload(self, payload):
 
