@@ -109,7 +109,6 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 #keep talking with the drone
 def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
-    soup = load_to_soup('../mapas/DotaMap.xml')
 
     pos_x = randint(10, server_map.x_size - 11)
     pos_y = 80

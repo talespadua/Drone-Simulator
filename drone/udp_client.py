@@ -155,13 +155,15 @@ def begin_streaming(s, host, port, drone):
             print("Drone zoom: "+str(zoom))
 
             map_matrix = parse_map_from_server(server_map)
-            #print(map_matrix)
+            print(map_matrix)
 
-            if drone.zoom > 1:
+            if drone.zoom > 1 or drone.flyingTime < 2:
                 setores = drone.addPontos(map_matrix)
                 payload = drone.chooseDirection(setores, payload)
-            else:
-                payload = drone.testePouso(map_matrix)
+
+            #Para não dar conflito com o modo de obter vento
+            elif drone.zoom == 1 and drone.flyingTime > 2:
+                payload = drone.testePouso(map_matrix, payload)
 
             input("Press enter to send next payload")
 

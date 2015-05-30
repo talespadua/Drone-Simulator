@@ -16,16 +16,33 @@ class Drone:
 
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
-        self.zoom = 5
+
+        #Para estratégia de obter vetor de vento
+        self.zoom = 1
 
         self.port = 0
         self.drone_id = randint(0, 255)
 
         self.islanding = False
 
+        #Limites seguros de locomoção
+        self.northLimit = 2 * self.zoom
+        self.southLimit = 2 * self.zoom
+        self.eastLimit = 2 * self.zoom
+        self.westLimit = 2 * self.zoom
+
+        #Mapa interno
         self.mapa = list()
         self.pontoInicial = Ponto(self.dx, self.dy, self.dz)
         self.pontoCentral = self.pontoInicial
+
+        #Indicadores de vento
+        self.normalWind = 0
+        self.binormalWind = 0
+        self.frontalWind = 0
+
+        #Indicador de tempo de voo
+        self.flyingTime = 0
 
     def moveBy(self, x, y, z):
         self.dx = x
@@ -36,10 +53,40 @@ class Drone:
 
         print("Movimento nesta iteração: x:%d y:%d z:%d" %(x, y, z))
 
-        #Calcula diferença entre o proximo ponto e o ponto inicial(0, 80, 0)
+        #Calcula diferença entre o ponto central do drone e o ponto inicial(0, 80, 0)
         self.pontoCentral.x += x
         self.pontoCentral.y += y
         self.pontoCentral.z += z
+
+        #Atualiza limites seguros
+        self.northLimit -= self.dz
+        self.southLimit += self.dz
+        self.eastLimit -= self.dx
+        self.westLimit += self.dx
+
+        #Atualiza tempo de voo
+        self.flyingTime += 1
+
+    def setSafeLimits(self, pontos):
+        if not -1 < pontos[7][0] < self.absY - 5:
+            self.northLimit = self.zoom
+        else:
+            self.northLimit = 0
+
+        if not -1 < pontos[7][14] < self.absY - 5:
+            self.southLimit = self.zoom
+        else:
+            self.southLimit = 0
+
+        if not -1 < pontos[0][7] < self.absY - 5:
+            self.westLimit = self.zoom
+        else:
+            self.westLimit = 0
+
+        if not -1 < pontos[14][7] < self.absY - 5:
+            self.eastLimit = self.zoom
+        else:
+            self.eastLimit = 0
 
     def addPontos(self, pontos):
         setores = list()
@@ -48,18 +95,22 @@ class Drone:
 
         for x in range(15):
             for z in range(15):
-                if pontos[x][z] == 255:
+                #Valor que muito provavelmente é um erro de comunicação
+                if pontos[x][z] > 250:
                     pontos[x][z] = -1
 
-                p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
+                p = Ponto((x - 7) * self.zoom + self.pontoCentral.x, pontos[x][z], (z - 7) * self.zoom + self.pontoCentral.z)
 
                 #ignora pontos fora da memória do drone
                 if p.y > -1:
-                    #Adiciona ponto no mapa do drone
-                    pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
+                    matches = [fp for fp in self.mapa if p.x == fp.x and p.z == fp.z]
 
-                    if pMapa not in self.mapa:
-                        self.mapa.append(pMapa)
+                    if len(matches) == 0:
+                        self.mapa.append(p)
+                    #Seja erro ou não, isso irá substituir alguma imprecisão da interpolação
+                    else:
+                        self.mapa.remove(matches[0])
+                        self.mapa.append(p)
 
                 #Adiciona pontos aos setores
                 if x < 10:
@@ -80,9 +131,19 @@ class Drone:
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
+        self.setSafeLimits(pontos)
+
         return setores
 
     def chooseDirection(self, setores, payload):
+        if self.flyingTime < 2:
+            self.moveBy(0, 0, 0)
+
+            if self.flyingTime >= 2:
+                self.zoom = 5
+
+            return self.sendPayload(payload)
+
         i = 0
         choice = -1
         cMed = 0
@@ -135,12 +196,13 @@ class Drone:
         #Caso a média ou variância seja muito alta ou nenhum setor tenha sido escolhido
         #Vale alterar possíveis valores de cVar (no caso, aqui ele também é influenciado pelo zoom)
         if cMed > 200 or cVar > 50 * self.zoom or choice == -1:
+            print("NOPE")
             #Aumenta área de procura
             if self.zoom < 5:
                 self.zoom += 1
 
             #Move um pouco p/pegar área diferente
-            self.moveBy(randint(-5, 5), 0, randint(-5, 5))
+            self.moveBy(randint(-self.westLimit, self.eastLimit), 0, randint(-self.southLimit, self.northLimit))
             return self.sendPayload(payload)
 
         #Escolhe setor
@@ -165,7 +227,7 @@ class Drone:
 
         return self.sendPayload(payload)
 
-    def testePouso(self, pontos):
+    def testePouso(self, pontos, payload):
         print("TestePouso")
         for x in range(-2, 3):
             for z in range(-2, 3):
@@ -176,18 +238,16 @@ class Drone:
                 if y1 == y2 and y2 == y3:
                     self.moveBy(0, -self.absY + y1 + 3, 0)
                     self.islanding = True
-                    return self.sendPayload()
+                    return self.sendPayload(payload)
 
         self.zoom += 1
-        self.moveBy(randint(-5, 5), 10, randint(-5, 5))
-        return self.sendPayload()
+        self.moveBy(randint(-self.westLimit, self.eastLimit), 10, randint(-self.southLimit, self.northLimit))
+        return self.sendPayload(payload)
 
     def sendPayload(self, payload):
 
         #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
         #Passar muitos parâmetros, como das mensagens
-        payload.add_port(self.port)
-        payload.add_drone_id(self.drone_id)
         payload.add_zoom(self.zoom)
 
         #TODO: Implement vector approach

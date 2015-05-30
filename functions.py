@@ -49,6 +49,12 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
             if randomizer < 300:
                 newValue = newValue - 2
 
+            #Para não ferrar na hora de colocar no payload (0 <= newValue <= 255)
+            if newValue > 255:
+                newValue = 255
+            elif newValue < 0:
+                newValue = 255
+
             returningArray.itemset((i, j), newValue)
 
 
