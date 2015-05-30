@@ -126,7 +126,7 @@ def begin_listening(sock, port, server_map):
     zwind = randint(-10, 10)
 
     if xwind > 5 or xwind < 5:
-            xwind = randint(-10, 10)    #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
+        xwind = randint(-10, 10)    #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
     if zwind > 5 or zwind < 5:
             zwind = randint(-10, 10)    #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
 
