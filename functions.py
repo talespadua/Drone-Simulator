@@ -53,7 +53,7 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa):
             if newValue > 255:
                 newValue = 255
             elif newValue < 0:
-                newValue = 0
+                newValue = 255
 
             returningArray.itemset((i, j), newValue)
 

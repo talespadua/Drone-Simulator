@@ -155,7 +155,7 @@ def begin_streaming(s, host, port, drone):
             print("Drone zoom: "+str(zoom))
 
             map_matrix = parse_map_from_server(server_map)
-            #print(map_matrix)
+            print(map_matrix)
 
             if drone.zoom > 1 or drone.flyingTime < 2:
                 setores = drone.addPontos(map_matrix)

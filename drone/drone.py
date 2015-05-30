@@ -41,6 +41,7 @@ class Drone:
         self.binormalWind = 0
         self.frontalWind = 0
 
+        #Indicador de tempo de voo
         self.flyingTime = 0
 
     def moveBy(self, x, y, z):
@@ -52,7 +53,7 @@ class Drone:
 
         print("Movimento nesta iteração: x:%d y:%d z:%d" %(x, y, z))
 
-        #Calcula diferença entre o proximo ponto e o ponto inicial(0, 80, 0)
+        #Calcula diferença entre o ponto central do drone e o ponto inicial(0, 80, 0)
         self.pontoCentral.x += x
         self.pontoCentral.y += y
         self.pontoCentral.z += z
@@ -65,8 +66,6 @@ class Drone:
 
         #Atualiza tempo de voo
         self.flyingTime += 1
-
-        print(self.northLimit, self.southLimit, self.eastLimit, self.westLimit)
 
     def setSafeLimits(self, pontos):
         if not -1 < pontos[7][0] < self.absY - 5:
@@ -96,18 +95,22 @@ class Drone:
 
         for x in range(15):
             for z in range(15):
-                if pontos[x][z] == 255:
+                #Valor que muito provavelmente é um erro de comunicação
+                if pontos[x][z] > 250:
                     pontos[x][z] = -1
 
-                p = Ponto((x - 7) * self.zoom + self.dx, pontos[x][z], (z - 7) * self.zoom + self.dz)
+                p = Ponto((x - 7) * self.zoom + self.pontoCentral.x, pontos[x][z], (z - 7) * self.zoom + self.pontoCentral.z)
 
                 #ignora pontos fora da memória do drone
                 if p.y > -1:
-                    #Adiciona ponto no mapa do drone
-                    pMapa = Ponto(p.x + self.pontoCentral.x, p.y, p.z + self.pontoCentral.z)
+                    matches = [fp for fp in self.mapa if p.x == fp.x and p.z == fp.z]
 
-                    if pMapa not in self.mapa:
-                        self.mapa.append(pMapa)
+                    if len(matches) == 0:
+                        self.mapa.append(p)
+                    #Seja erro ou não, isso irá substituir alguma imprecisão da interpolação
+                    else:
+                        self.mapa.remove(matches[0])
+                        self.mapa.append(p)
 
                 #Adiciona pontos aos setores
                 if x < 10:
@@ -127,8 +130,6 @@ class Drone:
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
-
-        print("Mapa interno: " + str(self.mapa))
 
         self.setSafeLimits(pontos)
 
@@ -195,6 +196,7 @@ class Drone:
         #Caso a média ou variância seja muito alta ou nenhum setor tenha sido escolhido
         #Vale alterar possíveis valores de cVar (no caso, aqui ele também é influenciado pelo zoom)
         if cMed > 200 or cVar > 50 * self.zoom or choice == -1:
+            print("NOPE")
             #Aumenta área de procura
             if self.zoom < 5:
                 self.zoom += 1
