@@ -1,6 +1,7 @@
 from queue import Queue
 import numpy as np
 from random import randint
+import math
 
 # Este método prepara uma matriz 15x15 dada a posição de um drone, e seu zoom. Ele devolve a matriz.
 def getArrayToDrone(sentX, sentZ, zoom, mapa):
@@ -185,3 +186,20 @@ def line(array, x0, y0, x1, y1):
                 err += dy
             y += sy
     array.itemset((x, y), 1)
+
+def convertXZIntoFrontalVector(x, z):
+    hip = float(math.sqrt(pow(x) + pow(z)))
+    return hip
+
+def convertXZIntoRotationAngle(x, z):
+    angle = math.arctan(x / z) * 180 / math.pi
+    return angle
+
+#Devolve um array [x][y] movidos
+def convertFrontalMovementIntoXZ(angle, frontal, arrayToGetResults):
+    x = frontal * math.cos(angle)
+    z = frontal * math.sin(angle)
+    arrayToGetResults.itemset(0, x)
+    arrayToGetResults.itemset(1, z)
+
+    return arrayToGetResults
