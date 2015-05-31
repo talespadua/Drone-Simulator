@@ -1,5 +1,6 @@
 from random import randint
 from payload import ClientPayload, PayloadProperties
+from interpol import interpolate
 
 class Ponto:
     def __init__(self, x, y, z):
@@ -103,6 +104,7 @@ class Drone:
 
                 #ignora pontos fora da memória do drone
                 if p.y > -1:
+                    #Busca se esse ponto já foi adicionado antes
                     matches = [fp for fp in self.mapa if p.x == fp.x and p.z == fp.z]
 
                     if len(matches) == 0:
@@ -128,12 +130,49 @@ class Drone:
                     if 5 <= z < 15:
                         setores[4].append(p)
 
+        #Interpola pontos e adiciona no mapa:
+        self.interpolaPontos()
+
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
         self.setSafeLimits(pontos)
 
         return setores
+
+    def interpolaPontos(self):
+        interpList = list()
+        auxMap = list()
+
+        for pa in self.mapa:
+            pb = Ponto(0, -1, 0)
+            pc = Ponto(0, -1, 0)
+            pd = Ponto(0, -1, 0)
+
+            #Procura pelos outros pontos p/ interpolar
+            for proc in self.mapa:
+                if pa.x + self.zoom == proc.x and pa.z == proc.z:
+                    pb = proc
+                elif pa.x == proc.x and pa.z + self.zoom == proc.z:
+                    pc = proc
+                elif pa.x + self.zoom == proc.x and pa.z + self.zoom == proc.z:
+                    pd = proc
+
+            #Encontrou os pontos necessários
+            if pb.y > -1 and pc.y > -1 and pd.y > -1:
+                interpList = interpolate(pa, pb, pc, pd)
+
+                for ponto in interpList:
+                    matches = [fp for fp in self.mapa if fp.x == ponto.x and fp.z == ponto.z]
+                    auxMatches = [afp for afp in auxMap if afp.x == ponto.x and afp.z == ponto.z]
+
+                    #Verifica se esse ponto já foi mapeado antes
+                    if len(matches) == 0 and len(auxMap) == 0:
+                        print("append")
+                        auxMap.append(ponto)
+
+        self.mapa.extend(auxMap)
+        print("d")
 
     def chooseDirection(self, setores, payload):
         if self.flyingTime < 2:
