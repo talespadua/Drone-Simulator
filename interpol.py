@@ -44,10 +44,7 @@ def interpolate(pa, pb, pc, pd):
         for z in range(pa.z, pc.z + 1):
             y = fxz[0] + x * fxz[1] + z * fxz[2] + x * z *fxz[3]
 
-            if y % 1 > 0.5:
-                y = int(y) + 1
-
-            p = Ponto(x, int(y), z)
+            p = Ponto(x, round(y), z)
             resposta.append(p)
 
     return resposta

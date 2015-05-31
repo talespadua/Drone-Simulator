@@ -1,6 +1,7 @@
 from random import randint
 from payload import ClientPayload, PayloadProperties
 from interpol import interpolate
+from functions import convertXZIntoFrontalVector
 
 class Ponto:
     def __init__(self, x, y, z):
@@ -25,6 +26,10 @@ class Drone:
         self.drone_id = randint(0, 255)
 
         self.islanding = False
+        self.northAligned = True
+
+        self.rotation = 0
+        self.frontalVector = 0
 
         #Limites seguros de locomoção
         self.northLimit = 2 * self.zoom
@@ -114,31 +119,22 @@ class Drone:
                         self.mapa.remove(matches[0])
                         self.mapa.append(p)
 
-                #Adiciona pontos aos setores
-                if x < 10:
-                    if z < 10:
-                        setores[1].append(p)
-                    if 5 <= z < 15:
-                        setores[3].append(p)
+        #Remove pontos muito distantes (maxDist = 54)
+        for p in self.mapa:
+            deltaX = self.pontoCentral.x - p.x
+            deltaZ = self.pontoCentral.z - p.z
 
-                if 2 <= x < 13 and 2 <= z < 13:
-                    setores[0].append(p)
+            if deltaX < 27 or deltaX > 27 or deltaZ < 27 or deltaZ > 27:
+                self.mapa.pop(self.mapa.index(p))
 
-                if 5 <= x < 15:
-                    if z < 10:
-                        setores[2].append(p)
-                    if 5 <= z < 15:
-                        setores[4].append(p)
-
-        #Interpola pontos e adiciona no mapa:
-        self.interpolaPontos()
+        #Interpola pontos e adiciona no mapa, caso zoom > 1:
+        if self.zoom > 1:
+            self.interpolaPontos()
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
 
         self.setSafeLimits(pontos)
-
-        return setores
 
     def interpolaPontos(self):
         interpList = list()
@@ -149,7 +145,7 @@ class Drone:
             pc = Ponto(0, -1, 0)
             pd = Ponto(0, -1, 0)
 
-            #Procura pelos outros pontos p/ interpolar
+            #Procura pelos outros pontos(b, c, d) p/ interpolar
             for proc in self.mapa:
                 if pa.x + self.zoom == proc.x and pa.z == proc.z:
                     pb = proc
@@ -174,7 +170,8 @@ class Drone:
         self.mapa.extend(auxMap)
         print("d")
 
-    def chooseDirection(self, setores, payload):
+    #TODO:Reestruturar os dois métodos seguintes p/ ler o mapa interno
+    def chooseDirection(self, payload):
         if self.flyingTime < 2:
             self.moveBy(0, 0, 0)
 
@@ -183,14 +180,40 @@ class Drone:
 
             return self.sendPayload(payload)
 
+        #Primeiro criar setores 11x11
+        setores = list()
+
+        firstPoint = self.mapa[0]
+        lastPoint = self.mapa[-1]
+
+        itX = firstPoint.x
+        itZ = firstPoint.z
+
+        while 1:
+            matches = [fp for fp in self.mapa if itX <= fp.x < itX + 11 and itZ <= fp.x < itZ + 11]
+
+            print(len(matches))
+            #Caso forme uma matriz 11x11
+            if len(matches == 121):
+                setores.append(matches)
+
+            itX += 5
+
+            #Caso estoure o limite máximo do mapa em x
+            if itX > lastPoint.x - 11:
+                itX = firstPoint.x
+                itZ += 5
+
+            #Caso em z
+            if itZ > lastPoint.z - 11:
+                break
+
+        #calc por variancia
         i = 0
         choice = -1
         cMed = 0
         cVar = 0
 
-        firstValid = 0
-
-        #calc por variancia
         for pts in setores:
             soma = 0
             nPtos = 0
@@ -244,15 +267,10 @@ class Drone:
             self.moveBy(randint(-self.westLimit, self.eastLimit), 0, randint(-self.southLimit, self.northLimit))
             return self.sendPayload(payload)
 
-        #Escolhe setor
-        if choice in [1, 3]:
-            x = -x
-        if choice in [3, 4]:
-            z = -z
-
-        elif choice == 0:
-            x = 0
-            z = 0
+        #Encontra ponto central do setor
+        pCentralSetor = setores[60]
+        x = pCentralSetor.x - self.pontoCentral.x
+        z = pCentralSetor.z - self.pontoCentral.z
 
 
         #De acordo com o zoom, reduz altitude
@@ -266,25 +284,42 @@ class Drone:
 
         return self.sendPayload(payload)
 
-    def testePouso(self, pontos, payload):
+    def testePouso(self, payload):
         print("TestePouso")
-        for x in range(-2, 3):
-            for z in range(-2, 3):
-                y1 = pontos[9 + x][7 + z]
-                y2 = pontos[5 + x][7 + z]
-                y3 = pontos[10 + x][10 + z]
 
-                if y1 == y2 and y2 == y3:
-                    self.moveBy(0, -self.absY + y1 + 3, 0)
-                    self.islanding = True
-                    return self.sendPayload(payload)
+        pa = Ponto(0, -1, 0)
+        pb = Ponto(0, -1, 0)
+        pc = Ponto(0, -1, 0)
 
+        for x in range(-self.westLimit, self.eastLimit):
+            for z in range(-self.southLimit, self.northLimit):
+                #Procura pontos para cada trem de pouso
+                for fp in self.mapa:
+                    if fp.x == 3 + x + self.pontoCentral.x and self.z == 3 + z + self.pontoCentral.z:
+                        pa = fp
+                    elif fp.x == -2 + x + self.pontoCentral.x and self.z == 0 + z + self.pontoCentral.z:
+                        pb = fp
+                    elif fp.x == 2 + x + self.pontoCentral.x and self.z == 0 + z + self.pontoCentral.z:
+                        pc = fp
+
+                #Calcula desnível entre trens de pouso
+                if pa.y > -1 and pb.y > -1 and pc.y > -1:
+                    deltaAB = pa.y - pb.y
+                    deltaAC = pa.y - pc.y
+                    deltaBC = pb.y - pc.y
+
+                    #Tolera um pouco de desnível
+                    if -1 <= deltaAB <= 1 and -1 <= deltaAC <= 1 and -1 <= deltaBC <= 1:
+                        self.moveBy(x, -self.absY + pb.y + 3, z)
+                        self.islanding = True
+                        return self.sendPayload(payload)
+
+        #Caso não tenha dado pra pousar
         self.zoom += 1
         self.moveBy(randint(-self.westLimit, self.eastLimit), 10, randint(-self.southLimit, self.northLimit))
         return self.sendPayload(payload)
 
     def sendPayload(self, payload):
-
         #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
         #Passar muitos parâmetros, como das mensagens
         payload.add_zoom(self.zoom)
