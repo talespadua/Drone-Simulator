@@ -134,8 +134,8 @@ def begin_streaming(s, host, port, drone):
             reply = d[0]
             addr = d[1]
 
+            #TODO: make sure msg type is checked first
             server_map = get_map_from_payload(reply)
-
 
             msg_type = get_message_type(reply)
             rcv_msg_id = get_message_id(reply)

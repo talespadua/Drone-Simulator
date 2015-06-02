@@ -7,10 +7,9 @@ from payload import ServerPayload, PayloadProperties
 import functions as f
 import struct
 from random import randint
-import numpy as np
-from drone.drone import Drone
+from servidor.DroneInfo import DroneInfo
 
-#TODO: Implementar o TCP para XD3 -> UDP -> TCP -> CONTINUE
+# TODO: Implementar o TCP para XD3 -> UDP -> TCP -> CONTINUE
 
 #Setting up config parser
 def get_config(config_file):
@@ -107,19 +106,20 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
     return map_list
 
 
+def get_drone(drone_list, drone_id):
+    for d in drone_list:
+        if d.drone_id == drone_id:
+            return d
+    return None
+
+
 #keep talking with the drone
 def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
 
-    #TODO: put values in drone dict
-    pos_x = randint(10, server_map.x_size - 11)
-    pos_y = 80
-    pos_z = randint(10, server_map.z_size - 11)
     drone_list = []
-    print("drone init: %d %d %d" %(pos_x, pos_y, pos_z))
 
-    normal_wind = randint(0, 1000)
-
+    normal_wind = 0
     frontal_wind = randint(-10, 10)
     binormal_wind = randint(-10, 10)
 
@@ -142,10 +142,18 @@ def begin_listening(sock, port, server_map):
         #PARSE DATA FROM DRONE
         drone_id = get_drone_id_from_payload(data)
         #TODO: Implement multiple drones and drone-to-drone payload
-        if drone_id not in drone_list:
-            drone_list.append(drone_id)
+
+        drone = get_drone(drone_list, drone_id)
+
+        if drone is None:
+            pos_x = randint(10, server_map.x_size - 11)
+            pos_y = 80
+            pos_z = randint(10, server_map.z_size - 11)
+            drone = DroneInfo(drone_id, pos_x, pos_y, pos_z)
+            drone_list.append(drone)
 
         msg_type = get_message_type(data)
+
         msg_id = get_message_id(data)
         drone_port = get_port_from_payload(data)
         zoom = get_zoom_from_payload(data)
@@ -157,19 +165,37 @@ def begin_listening(sock, port, server_map):
 
         drone_pos = f.convertFrontalMovementIntoXZ(rotation, frontal_mov)
 
-        collision = f.verifyCollision(pos_x, pos_z, pos_x + drone_pos[0], pos_y + normal_mov, pos_z + drone_pos[1], server_map)
+        collision = f.verifyCollision(drone.pos_x, drone.pos_z, drone.pos_x + drone_pos[0], drone.pos_y + normal_mov,
+                                      drone.pos_z + drone_pos[1], server_map)
 
-        pos_y += normal_mov
-        pos_x += drone_pos[0]
-        pos_z += drone_pos[1]
+        drone.pos_y += normal_mov
+        drone.pos_x += drone_pos[0]
+        drone.pos_z += drone_pos[1]
 
         if collision == -1:
-            return 0
+            print("O drone com ID " + drone.drone_id + "Colidiu")
+            drone_list.remove(drone)
+            msg_type = 3
+            payload.add_drone_id(drone_id)
+            payload.add_message_type(msg_type)
+            payload.add_message_id(msg_id)
+
+            sock.sendto(payload.payload, addr)
+            continue
 
         if msg_type == 1:
-            return 1
+            print("O drone com ID " + drone.drone_id + "Pousou com sucesso")
+            drone_list.remove(drone)
+            msg_type = 3
+            payload.add_drone_id(drone_id)
+            payload.add_message_type(msg_type)
+            payload.add_message_id(msg_id)
 
-        map_str = parse_drone_map_to_string(pos_x, pos_z, zoom, server_map)
+            sock.sendto(payload.payload, addr)
+            continue
+
+
+        map_str = parse_drone_map_to_string(drone.pos_x, drone.pos_z, zoom, server_map)
 
         payload.add_drone_id(drone_id)
         payload.add_message_type(msg_type)
@@ -179,8 +205,8 @@ def begin_listening(sock, port, server_map):
         payload.add_frontal_wind(frontal_wind)
         payload.add_binormal_wind(binormal_wind)
 
-        payload.add_gps_posx(pos_x)
-        payload.add_gps_posz(pos_z)
+        payload.add_gps_posx(drone.pos_x)
+        payload.add_gps_posz(drone.pos_z)
 
         payload.add_drone_zoom(zoom)
         payload.add_drone_map(map_str)
@@ -189,13 +215,14 @@ def begin_listening(sock, port, server_map):
         #payload.print_payload_size()
         sock.sendto(payload.payload, addr)
 
+
 def main():
     config = get_config('settings.cfg')
     soup = load_to_soup('../mapas/EasyMap.xml')
     soup_map = Map(soup)
 
     # Datagram (udp) socket
-    host = config.get('settings', 'host')   # Symbolic name meaning all available interfaces
+    host = config.get('settings', 'host')  # Symbolic name meaning all available interfaces
     port = int(config.get('settings', 'port'))  # Arbitrary non-privileged port
 
     s = create_socket()
@@ -208,6 +235,7 @@ def main():
         print("O drone pousou adequadamente. Encerrando simulação")
     else:
         print("O Drone colidiu. Abortando simulação")
+
 
 if __name__ == "__main__":
     main()
