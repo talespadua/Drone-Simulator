@@ -9,7 +9,7 @@ from drone import Drone #WHAT
 
 def get_config(config_file):
     config = configparser.RawConfigParser()
-    config.read(config_file)
+    config.read(config_file, encoding='utf-8')
     return config
 
 
@@ -204,8 +204,8 @@ def main():
         else:
             drone_port += 1
 
-    config.set('settings', 'port_seed', drone_port+1)
-    with open("settings.cfg", 'wb') as configfile:
+    config.set('settings', 'port_seed', str(drone_port+1))
+    with open("settings.cfg", 'w') as configfile:
         config.write(configfile)
 
     drone = Drone()
