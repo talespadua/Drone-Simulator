@@ -39,6 +39,8 @@ class Map:
 
             temp = temp+c
 
+        i = 0
+        j = 0
         for c in self.type_nodes:
             if c is '\n':
                 self.type_array[i][j] = int(temp)
