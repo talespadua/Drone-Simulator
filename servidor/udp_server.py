@@ -91,7 +91,7 @@ def get_rotation_from_payload(payload):
 
 def parse_drone_map_to_string(x, z, zoom, mapa):
     map_matrix = f.getArrayToDrone(x, z, zoom, mapa.map_array)
-
+    map_type_matrix = f.getArrayToDrone(x, z, zoom, mapa.type_array)
     # map_string = ''
     # for i in range(15):
     #         for j in range(15):
@@ -101,7 +101,7 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 
     for i in range(15):
         for j in range(15):
-            map_list.append(0)
+            map_list.append(map_type_matrix[i][j])
             map_list.append(map_matrix[i][j])
 
     return map_list

@@ -79,12 +79,14 @@ def get_map_from_payload(payload):
 
 def parse_map_from_server(server_map):
     map_matrix = np.zeros((15, 15))
+    type_matrix = np.zeros((15, 15))
     index = 0
     i = 0
     j = 0
     for c in server_map:
         #ignoring first byte
         if index % 2 == 0:
+            type_matrix.itemset((i, j), int(c))
             index += 1
             continue
         else:
