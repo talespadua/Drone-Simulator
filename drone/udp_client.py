@@ -154,8 +154,8 @@ def begin_streaming(s, host, port, drone):
             gps_posz = get_gps_pos_z(reply)
 
             print("Server reply:")
-            print("Drone id: "+str(drone_id))
-            print("Drone zoom: "+str(zoom))
+            print("Drone id: "+str(drone.drone_id))
+            print("Drone zoom: "+str(drone.zoom))
 
             map_matrix = parse_map_from_server(server_map)
             print(map_matrix)
