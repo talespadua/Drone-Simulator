@@ -29,7 +29,6 @@ def get_drone_id_from_payload(payload):
     return drone_id
 
 
-#TODO: implemment next 7 methods, relative to last committee changes
 def get_message_type(payload):
     msg_type = struct.unpack('B', payload[1:2])[0]
     return msg_type
@@ -118,9 +117,10 @@ def begin_streaming(s, host, port, drone):
     payload.add_msg_type(msg_type)
     payload.add_zoom(zoom)
 
-    payload.add_drone_normal_vector(129)
-    payload.add_drone_frontal_vector(77)
-    payload.add_drone_binormal_vector(40)
+    #0, 0, 0 is initial result
+    payload.add_drone_normal_vector(0)
+    payload.add_drone_frontal_vector(0)
+    payload.add_drone_rotation(0)
 
     while 1:
         try:
@@ -133,6 +133,7 @@ def begin_streaming(s, host, port, drone):
             addr = d[1]
 
             server_map = get_map_from_payload(reply)
+
 
             msg_type = get_message_type(reply)
             rcv_msg_id = get_message_id(reply)

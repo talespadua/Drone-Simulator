@@ -10,6 +10,7 @@ from random import randint
 import numpy as np
 from drone.drone import Drone
 
+#TODO: Implementar o TCP para XD3 -> UDP -> TCP -> CONTINUE
 
 #Setting up config parser
 def get_config(config_file):
@@ -83,7 +84,7 @@ def get_frontal_from_payload(payload):
     return z_pos
 
 
-def get_binormal_from_payload(payload):
+def get_rotation_from_payload(payload):
     y_pos = struct.unpack('>i', payload[16:20])[0]
     return y_pos
 
@@ -110,6 +111,7 @@ def parse_drone_map_to_string(x, z, zoom, mapa):
 def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
 
+    #TODO: put values in drone dict
     pos_x = randint(10, server_map.x_size - 11)
     pos_y = 80
     pos_z = randint(10, server_map.z_size - 11)
@@ -117,17 +119,16 @@ def begin_listening(sock, port, server_map):
     print("drone init: %d %d %d" %(pos_x, pos_y, pos_z))
 
     normal_wind = randint(0, 1000)
-    frontal_wind = randint(0, 1000)
-    binormal_wind = randint(0, 1000)
 
+    frontal_wind = randint(-10, 10)
+    binormal_wind = randint(-10, 10)
 
-    xwind = randint(-10, 10)
-    zwind = randint(-10, 10)
-
-    if xwind > 5 or xwind < 5:
-        xwind = randint(-10, 10)    #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
-    if zwind > 5 or zwind < 5:
-            zwind = randint(-10, 10)    #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
+    if frontal_wind > 5 or frontal_wind < 5:
+        #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)
+        frontal_wind = randint(-10, 10)
+    if binormal_wind > 5 or binormal_wind < 5:
+        #Uma segunda rolagem concentra resultados numa margem pequena. (Aprox. 75% de chance de estar entre 0 e 5)s
+        binormal_wind = randint(-10, 10)
 
     while 1:
         # receive data from drone (data, addr)
@@ -140,6 +141,7 @@ def begin_listening(sock, port, server_map):
 
         #PARSE DATA FROM DRONE
         drone_id = get_drone_id_from_payload(data)
+        #TODO: Implement multiple drones and drone-to-drone payload
         if drone_id not in drone_list:
             drone_list.append(drone_id)
 
@@ -148,31 +150,27 @@ def begin_listening(sock, port, server_map):
         drone_port = get_port_from_payload(data)
         zoom = get_zoom_from_payload(data)
 
-        #TODO: Implement landed calculation with new payload format
         #Last drone movement
         normal_mov = get_normal_from_payload(data)
         frontal_mov = get_frontal_from_payload(data)
-        binormal_mov = get_binormal_from_payload(data)
+        rotation = get_rotation_from_payload(data)
 
-        #Por hora, usando frontal=z, binormal=y, normal=x
+        drone_pos = f.convertFrontalMovementIntoXZ(rotation, frontal_mov)
 
-        #TODO: Collision return -1 or 1, but need to cover the case where neither happens
-        # collision = f.verifyCollision(old_x, old_z, old_x + normal_mag, old_y + binormal_mag, old_z + frontal_mag, server_map)
-        # pos_x += normal_mag
-        # pos_y += binormal_mag
-        # pos_z += frontal_mag
+        collision = f.verifyCollision(pos_x, pos_z, pos_x + drone_pos[0], pos_y + normal_mov, pos_z + drone_pos[1], server_map)
 
-        collision = 0
+        pos_y += normal_mov
+        pos_x += drone_pos[0]
+        pos_z += drone_pos[1]
 
         if collision == -1:
             return 0
 
-        elif msg_type == 1:
+        if msg_type == 1:
             return 1
 
         map_str = parse_drone_map_to_string(pos_x, pos_z, zoom, server_map)
 
-        #TODO: implement new methods from server payload here
         payload.add_drone_id(drone_id)
         payload.add_message_type(msg_type)
         payload.add_message_id(msg_id)
@@ -181,7 +179,6 @@ def begin_listening(sock, port, server_map):
         payload.add_frontal_wind(frontal_wind)
         payload.add_binormal_wind(binormal_wind)
 
-        #TODO: add statistical error
         payload.add_gps_posx(pos_x)
         payload.add_gps_posz(pos_z)
 
@@ -194,7 +191,7 @@ def begin_listening(sock, port, server_map):
 
 def main():
     config = get_config('settings.cfg')
-    soup = load_to_soup('../mapas/DotaMap.xml')
+    soup = load_to_soup('../mapas/EasyMap.xml')
     soup_map = Map(soup)
 
     # Datagram (udp) socket

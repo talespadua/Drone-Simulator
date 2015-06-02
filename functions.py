@@ -188,18 +188,18 @@ def line(array, x0, y0, x1, y1):
     array.itemset((x, y), 1)
 
 def convertXZIntoFrontalVector(x, z):
-    hip = float(math.sqrt(pow(x) + pow(z)))
+    hip = float(math.sqrt(pow(x, 2) + pow(z, 2)))
     return round(hip)
 
 def convertXZIntoRotationAngle(x, z):
-    angle = math.arctan(x / z) * 180 / math.pi
+    if x == 0:
+        return 90.0
+    angle = math.atan(z / x) * 180 / math.pi
     return round(angle)
 
 #Devolve um array [x][y] movidos
-def convertFrontalMovementIntoXZ(angle, frontal, arrayToGetResults):
+def convertFrontalMovementIntoXZ(angle, frontal):
     x = round(frontal * math.cos(angle))
     z = round(frontal * math.sin(angle))
-    arrayToGetResults.itemset(0, x)
-    arrayToGetResults.itemset(1, z)
-
-    return arrayToGetResults
+    result = (x, z)
+    return result

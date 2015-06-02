@@ -1,7 +1,7 @@
 from random import randint
 from payload import ClientPayload, PayloadProperties
 from interpol import interpolate
-from functions import convertXZIntoFrontalVector
+import functions as f
 
 class Ponto:
     def __init__(self, x, y, z):
@@ -11,6 +11,7 @@ class Ponto:
 
 class Drone:
     def __init__(self):
+        #todo: implement fuel and fuel related function
         self.dx = 0
         self.dy = 0
         self.dz = 0
@@ -49,6 +50,7 @@ class Drone:
 
         #Indicador de tempo de voo
         self.flyingTime = 0
+
 
     def moveBy(self, x, y, z):
         self.dx = x
@@ -170,7 +172,6 @@ class Drone:
         self.mapa.extend(auxMap)
         print("d")
 
-    #TODO:Reestruturar os dois métodos seguintes p/ ler o mapa interno
     def chooseDirection(self, payload):
         if self.flyingTime < 2:
             self.moveBy(0, 0, 0)
@@ -285,7 +286,7 @@ class Drone:
         return self.sendPayload(payload)
 
     def testePouso(self, payload):
-        print("TestePouso")
+        # print("TestePouso")
 
         pa = Ponto(0, -1, 0)
         pb = Ponto(0, -1, 0)
@@ -320,21 +321,13 @@ class Drone:
         return self.sendPayload(payload)
 
     def sendPayload(self, payload):
-        #TODO: acho melhor colocar os parametros do payload no metodo do client, acho mais consistente e não precisamos
         #Passar muitos parâmetros, como das mensagens
         payload.add_zoom(self.zoom)
 
-        #TODO: Implement vector approach
-        #payload.add_params(params)
-        #payload.add_drone_xpos(self.dx)
-        #payload.add_drone_ypos(self.dy)
-        #payload.add_drone_zpos(self.dz)
-        #payload.add_drone_land_info(self.islanding)
-
         #Por hora, usando frontal=z, binormal=y, normal=x
-        payload.add_drone_normal_vector(self.dx)
-        payload.add_drone_frontal_vector(self.dz)
-        payload.add_drone_binormal_vector(self.dy)
+        payload.add_drone_normal_vector(self.dy)
+        payload.add_drone_frontal_vector(f.convertXZIntoFrontalVector(self.dx, self.dz))
+        payload.add_drone_rotation(f.convertXZIntoRotationAngle(self.dx, self.dz))
 
         if self.islanding:
             payload.add_msg_type(1)

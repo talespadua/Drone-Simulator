@@ -21,7 +21,6 @@ class ServerPayload():
     def add_message_id(self, msg_id):
         struct.pack_into('B', self.payload, 2, int(msg_id))
 
-    #TODO: implement turn and movement
     def add_normal_wind(self, value):
         struct.pack_into('>i', self.payload, 3, int(value))
 
@@ -87,7 +86,7 @@ class ClientPayload:
     def add_drone_frontal_vector(self, value):
         struct.pack_into('>i', self.payload, 12, int(value))
 
-    def add_drone_binormal_vector(self, value):
+    def add_drone_rotation(self, value):
         struct.pack_into('>i', self.payload, 16, int(value))
 
     def get_payload(self):
