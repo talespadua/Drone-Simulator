@@ -23,6 +23,17 @@ def create_socket():
         sys.exit()
 
 
+def bind_socket(sock, host, port):
+    # Bind socket to local host and port
+    try:
+        sock.bind((host, port))
+    except socket.error as msg:
+        print('Bind failed. Error Code : ' + str(msg) + ' Message ' + str(msg))
+        return False
+    print('Socket bind complete')
+    return True
+
+
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[0:1])[0]
     print("Drone ID: %d" %(drone_id))
@@ -182,14 +193,25 @@ def main():
     config = get_config("settings.cfg")
 
     host = config.get('settings', 'host')
-    port = int(config.get('settings', 'port'))
+    drone_port = int(config.get('settings', 'port_seed'))
+    server_port = int(config.get('settings', 'server_port'))
 
     s = create_socket()
 
-    drone = Drone()
-    drone.port = port
+    while True:
+        if bind_socket(s, host, drone_port):
+            break
+        else:
+            drone_port += 1
 
-    begin_streaming(s, host, port, drone)
+    config.set('settings', 'port_seed', drone_port+1)
+    with open("settings.cfg", 'wb') as configfile:
+        config.write(configfile)
+
+    drone = Drone()
+    drone.port = drone_port
+
+    begin_streaming(s, host, server_port, drone)
 
     s.close()
 

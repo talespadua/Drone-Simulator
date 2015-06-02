@@ -149,7 +149,7 @@ def begin_listening(sock, port, server_map):
             pos_x = randint(10, server_map.x_size - 11)
             pos_y = 80
             pos_z = randint(10, server_map.z_size - 11)
-            drone = DroneInfo(drone_id, pos_x, pos_y, pos_z)
+            drone = DroneInfo(drone_id, pos_x, pos_y, pos_z, addr)
             drone_list.append(drone)
 
         msg_type = get_message_type(data)
@@ -173,28 +173,28 @@ def begin_listening(sock, port, server_map):
         drone.pos_z += drone_pos[1]
 
         if collision == -1:
-            print("O drone com ID " + drone.drone_id + "Colidiu")
+            print("Drone with ID " + drone.drone_id + "Collided")
             drone_list.remove(drone)
             msg_type = 3
             payload.add_drone_id(drone_id)
             payload.add_message_type(msg_type)
             payload.add_message_id(msg_id)
 
-            sock.sendto(payload.payload, addr)
+            sock.sendto(payload.payload, drone.addr)
             continue
 
         if msg_type == 1:
-            print("O drone com ID " + drone.drone_id + "Pousou com sucesso")
+            print("Drone with ID " + drone.drone_id + "landed")
             drone_list.remove(drone)
             msg_type = 3
             payload.add_drone_id(drone_id)
             payload.add_message_type(msg_type)
             payload.add_message_id(msg_id)
 
-            sock.sendto(payload.payload, addr)
+            sock.sendto(payload.payload, drone.addr)
             continue
 
-
+        #TODO: impplement drone-to-drone communication
         map_str = parse_drone_map_to_string(drone.pos_x, drone.pos_z, zoom, server_map)
 
         payload.add_drone_id(drone_id)
@@ -213,7 +213,7 @@ def begin_listening(sock, port, server_map):
 
         #payload.print_payload(55, 80)
         #payload.print_payload_size()
-        sock.sendto(payload.payload, addr)
+        sock.sendto(payload.payload, drone.addr)
 
 
 def main():
@@ -228,13 +228,8 @@ def main():
     s = create_socket()
     bind_socket(s, host, port)
 
-    result = begin_listening(s, port, soup_map)
+    begin_listening(s, port, soup_map)
     s.close()
-
-    if result == 1:
-        print("O drone pousou adequadamente. Encerrando simulação")
-    else:
-        print("O Drone colidiu. Abortando simulação")
 
 
 if __name__ == "__main__":
