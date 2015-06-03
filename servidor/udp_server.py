@@ -113,12 +113,12 @@ def get_drone(drone_list, drone_id):
     return None
 
 
-def get_drone_model_tcp():
+def get_drone_model_tcp(drone_model_number):
     s = socket.socket()         # Create a socket object
     host = socket.gethostname() # Get local machine name
     port = 12345                 # Reserve a port for your service.
     s.bind((host, port))        # Bind to the port
-    file = open('DroneModel.x3d', 'wb')
+    file = open('DroneModel_'+str(drone_model_number)+'.x3d', 'wb')
     s.listen(5)                 # Now wait for client connection.
     while True:
         c, addr = s.accept()     # Establish connection with client.
@@ -132,13 +132,17 @@ def get_drone_model_tcp():
         file.close()
         print("Done Receiving")
         c.close()                # Close the connection
+        s.close()
+        return
 
 
 #keep talking with the drone
-def begin_listening(sock, port, server_map):
+def begin_listening(sock, port, server_map, config):
     print("Server is listening on port " + port.__str__() + "...")
 
     drone_list = []
+
+    drone_model_number = int(config.get('settings', 'drone_model_number'))
 
     normal_wind = 0
     frontal_wind = randint(-10, 10)
@@ -193,7 +197,16 @@ def begin_listening(sock, port, server_map):
             payload.add_message_id(msg_id)
             payload.add_message_type(4)
             sock.sendto(payload.payload, drone.addr)
-            get_drone_model_tcp()
+            get_drone_model_tcp(drone_model_number)
+
+            payload.add_message_type(0)
+
+            drone_model_number += 1
+            config.set('settings', 'drone_model_number', str(drone_model_number))
+            with open("settings.cfg", 'w') as configfile:
+                config.write(configfile)
+
+            sock.sendto(payload.payload, drone.addr)
             continue
 
         zoom = get_zoom_from_payload(data)
@@ -256,7 +269,7 @@ def main():
     s = create_socket()
     bind_socket(s, host, port)
 
-    begin_listening(s, port, soup_map)
+    begin_listening(s, port, soup_map, config)
     s.close()
 
 

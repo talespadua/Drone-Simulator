@@ -127,7 +127,6 @@ def transfer_drone_model():
     file.close()
     print("Done Sending")
     s.shutdown(socket.SHUT_WR)
-    print(s.recv(1024))
     s.close()
 
 
@@ -170,6 +169,12 @@ def begin_streaming(s, host, port, drone):
             if msg_type == 4:
                 transfer_drone_model()
                 msg_type = 0
+                d = s.recvfrom(512)
+                reply = d[0]
+                addr = d[1]
+
+            if msg_type == 3:
+                sys.exit()
 
             rcv_msg_id = get_message_id(reply)
 
@@ -206,7 +211,7 @@ def begin_streaming(s, host, port, drone):
             elif drone.zoom == 1 and drone.flyingTime > 2:
                 payload = drone.testePouso(payload)
 
-            input("Press enter to send next payload")
+            # input("Press enter to send next payload")
 
             msg_id += 1
 
