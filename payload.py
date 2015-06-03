@@ -92,3 +92,22 @@ class ClientPayload:
 
     def get_payload(self):
         return self.payload
+
+class DronePayload:
+    def __init__(self):
+        self.payload = bytearray(512)
+
+    def add_port(self, port):
+        struct.pack_into('>I', self.payload, 0, int(port))
+
+    def add_pos_x(self, drone_id):
+        struct.pack_into('>i', self.payload, 4, int(drone_id))
+
+    def add_pos_y(self, msg_id):
+        struct.pack_into('>i', self.payload, 8, int(msg_id))
+
+    def add_pos_z(self, msg_type):
+        struct.pack_into('>i', self.payload, 11, int(msg_type))
+
+    def get_payload(self):
+        return self.payload

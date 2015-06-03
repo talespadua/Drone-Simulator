@@ -16,6 +16,7 @@ def get_config(config_file):
 def create_socket():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(5)
         print('Socket created')
         return s
     except socket.error as msg:
@@ -165,7 +166,7 @@ def begin_streaming(s, host, port, drone):
             addr = d[1]
 
             msg_type = get_message_type(reply)
-
+             #TODO: make sure msg type is checked first
             if msg_type == 4:
                 transfer_drone_model()
                 msg_type = 0
@@ -178,20 +179,14 @@ def begin_streaming(s, host, port, drone):
 
             rcv_msg_id = get_message_id(reply)
 
-            #TODO: treat case where msg id are not the same
-            if rcv_msg_id is not msg_id:
-                pass
-
             if first_round is True:
                 wind_normal = get_normal_wind(reply)
                 wind_frontal = get_frontal_wind(reply)
                 wind_binormal = get_binormal_wind(reply)
                 first_round = False
 
-            #TODO: make sure msg type is checked first
             server_map = get_map_from_payload(reply)
 
-            #TODO: create timeout for response
             gps_posx = get_gps_pos_x(reply)
             gps_posz = get_gps_pos_z(reply)
 
@@ -215,9 +210,9 @@ def begin_streaming(s, host, port, drone):
 
             msg_id += 1
 
-        except socket.error as msg:
-            print('Error Code : ' + str(msg)[1:] + ' Message ' + str(msg))
-            sys.exit()
+        except socket.timeout:
+            s.sendto(payload.payload, (host, port))
+            continue
 
 
 def main():

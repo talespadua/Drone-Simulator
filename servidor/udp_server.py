@@ -9,7 +9,6 @@ import struct
 from random import randint
 from servidor.DroneInfo import DroneInfo
 
-# TODO: Implementar o TCP para XD3 -> UDP -> TCP -> CONTINUE
 
 #Setting up config parser
 def get_config(config_file):
@@ -135,6 +134,13 @@ def get_drone_model_tcp(drone_model_number):
         s.close()
         return
 
+def check_area_collision(drone_one, drone_two)_
+
+
+def check_drone_proximity(drone_list):
+    starting_point = 1
+    list_len = len(drone_list)
+    drone = drone_list[0]
 
 #keep talking with the drone
 def begin_listening(sock, port, server_map, config):
@@ -166,7 +172,6 @@ def begin_listening(sock, port, server_map, config):
 
         #PARSE DATA FROM DRONE
         drone_id = get_drone_id_from_payload(data)
-        #TODO: Implement multiple drones and drone-to-drone payload
 
         drone = get_drone(drone_list, drone_id)
 
@@ -223,6 +228,8 @@ def begin_listening(sock, port, server_map, config):
         drone.pos_y += normal_mov
         drone.pos_x += drone_pos[0]
         drone.pos_z += drone_pos[1]
+
+
 
         if collision == -1:
             print("Drone with ID " + str(drone.drone_id) + "Collided")
