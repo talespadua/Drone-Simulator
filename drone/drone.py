@@ -8,7 +8,7 @@ class Ponto:
         self.x = x
         self.y = y
         self.z = z
-        self.energy = 5000
+
 
 class Drone:
     def __init__(self):
@@ -17,7 +17,8 @@ class Drone:
         self.dy = 0
         self.dz = 0
         self.absY = 80
-
+        self.energy = 5000
+        
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
 
