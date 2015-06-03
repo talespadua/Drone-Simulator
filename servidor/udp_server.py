@@ -173,7 +173,7 @@ def begin_listening(sock, port, server_map):
         drone.pos_z += drone_pos[1]
 
         if collision == -1:
-            print("Drone with ID " + drone.drone_id + "Collided")
+            print("Drone with ID " + str(drone.drone_id) + "Collided")
             drone_list.remove(drone)
             msg_type = 3
             payload.add_drone_id(drone_id)

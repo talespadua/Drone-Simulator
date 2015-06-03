@@ -67,7 +67,6 @@ def getArrayToDrone(sentX, sentZ, zoom, mapa, gridSizeX, gridSizeZ):
 def verifyCollision(previousX, previousZ, newX, newY, newZ, mapa):
     # O método constroi uma submatriz para tratamento posterior. Para isso, podemos diminuir o alcance corretamente
 
-
     gridSizeX = mapa.x_size  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
     gridSizeZ = mapa.z_size
 
