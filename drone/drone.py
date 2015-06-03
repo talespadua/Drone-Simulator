@@ -12,7 +12,6 @@ class Ponto:
 
 class Drone:
     def __init__(self):
-        #todo: implement fuel and fuel related function
         self.dx = 0
         self.dy = 0
         self.dz = 0
@@ -55,6 +54,22 @@ class Drone:
 
 
     def moveBy(self, x, y, z):
+        #Atualiza tempo de voo
+        self.flyingTime += 1
+
+        #Caso não esteja alinhado com o norte do mapa, realinhar
+        if self.northAligned == False:
+            self.rotation = -self.rotation
+            self.dx = 0
+            self.dy = 0
+            self.dz = 0
+            self.northAligned == True
+
+            self.atualizaCombustivel()
+
+            return
+
+        #Caso esteja alinhado com o norte do mapa...
         self.dx = x
         self.dy = y
         self.dz = z
@@ -74,8 +89,34 @@ class Drone:
         self.eastLimit -= self.dx
         self.westLimit += self.dx
 
-        #Atualiza tempo de voo
-        self.flyingTime += 1
+        #Converter (dx, dy, dz) em (frontal, normal, rotation)
+        self.frontalVector = f.convertXZIntoFrontalVector(self.dx, self.dz)
+        self.rotation = f.convertXZIntoRotationAngle(self.dx, self.dz)
+
+        if self.rotation != 0:
+            self.northAligned = False
+
+        self.atualizaCombustivel()
+
+    def atualizaCombustivel(self):
+        #Combustível
+        self.energy -= f.convertXZIntoFrontalVector(self.dx, self.dz)
+
+        #Gasta energia p/ subir
+        if self.dy > 0:
+            self.energy -= self.dy
+
+        #Gasta energia se for para ficar parado
+        elif self.dy == 0 and self.dx == 0 and self.dz == 0:
+            self.energy -= 1
+
+        #Conseiderando que deixar o drone em queda livre o faça cair 1dm/unidade de tempo
+        elif self.dy < -1:
+            self.energy += self.dy
+
+        #Se o drone ficar sem combustivel
+        if self.energy <= 0:
+            print("Manhê!!! O droninho caiu!!!")
 
     def setSafeLimits(self, pontos):
         if not -1 < pontos[7][0] < self.absY - 5:
@@ -97,6 +138,20 @@ class Drone:
             self.eastLimit = self.zoom
         else:
             self.eastLimit = 0
+
+        #Limitando o deslocamento máximo por combustível restante
+        #Estimando que 60% do combustível do drone será utilizado para movimento em XZ
+        #Sem considerar conversão p/vetor frontal + rotação
+        fuelLimit = int(round(self.energy * 0.6))
+
+        if self.northLimit > fuelLimit:
+            self.northLimit = fuelLimit
+        if self.southLimit > fuelLimit:
+            self.southLimit = fuelLimit
+        if self.eastLimit > fuelLimit:
+            self.eastLimit = fuelLimit
+        if self.westLimit > fuelLimit:
+            self.westLimit = fuelLimit
 
     def addPontos(self, pontos):
         print("addPontos")
@@ -142,7 +197,17 @@ class Drone:
         print("interpolaPontos")
         auxMap = list()
 
+        prevPoint = self.mapa[0]
+
         for pa in self.mapa:
+            deltaX = prevPoint.x - pa.x
+            deltaZ = prevPoint.z - pa.z
+
+            #Tentar reduzir a quantidade de interpolações!
+            #Válido aumentar a distancia mínima entre os PAs de interpolação
+            if (deltaX < 2 or deltaX > -2) and (deltaZ < 2 or deltaZ > -2):
+                print("shouldnt:", deltaX, deltaZ)
+
             pb = Ponto(0, -1, 0)
             pc = Ponto(0, -1, 0)
             pd = Ponto(0, -1, 0)
@@ -176,7 +241,10 @@ class Drone:
 
         #Verifica se vai ou não comparar vento
         if self.flyingTime < 2:
-            self.moveBy(0, 0, 0)
+            if self.energy > 0:
+                self.moveBy(0, 0, 0)
+            else:
+                self.moveBy(0, -1, 0)
 
             if self.flyingTime >= 2:
                 self.zoom = 5
@@ -292,10 +360,12 @@ class Drone:
     def testePouso(self, payload):
         # print("TestePouso")
 
+        #Trens de pouso
         pa = Ponto(0, -1, 0)
         pb = Ponto(0, -1, 0)
         pc = Ponto(0, -1, 0)
 
+        #Procura dentro de um range uma posição para pousar
         for x in range(-self.westLimit, self.eastLimit):
             for z in range(-self.southLimit, self.northLimit):
                 #Procura pontos para cada trem de pouso
@@ -330,9 +400,8 @@ class Drone:
 
         #Por hora, usando frontal=z, binormal=y, normal=x
         payload.add_drone_normal_vector(self.dy)
-        payload.add_drone_frontal_vector(f.convertXZIntoFrontalVector(self.dx, self.dz))
-        self.energy -= f.convertXZIntoFrontalVector(self.dx, self.dz)
-        payload.add_drone_rotation(f.convertXZIntoRotationAngle(self.dx, self.dz))
+        payload.add_drone_frontal_vector(self.frontalVector)
+        payload.add_drone_rotation(self.rotation)
 
         if self.islanding:
             payload.add_msg_type(1)
