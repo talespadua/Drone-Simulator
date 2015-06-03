@@ -206,6 +206,9 @@ def begin_streaming(s, host, port, drone):
             elif drone.zoom == 1 and drone.flyingTime > 2:
                 payload = drone.testePouso(payload)
 
+                if drone.islanding == True:
+                    return 1
+
             # input("Press enter to send next payload")
 
             msg_id += 1

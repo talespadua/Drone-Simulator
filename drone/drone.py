@@ -59,42 +59,42 @@ class Drone:
 
         #Caso não esteja alinhado com o norte do mapa, realinhar
         if self.northAligned == False:
+            print("Realign")
             self.rotation = -self.rotation
             self.dx = 0
             self.dy = 0
             self.dz = 0
-            self.northAligned == True
-
-            self.atualizaCombustivel()
-
-            return
+            self.northAligned = True
 
         #Caso esteja alinhado com o norte do mapa...
-        self.dx = x
-        self.dy = y
-        self.dz = z
+        else:
+            print("Aligned")
+            self.dx = x
+            self.dy = y
+            self.dz = z
 
-        self.absY += y
+            self.absY += y
 
-        print("Movimento nesta iteração: x:%d y:%d z:%d" %(x, y, z))
+            print("Movimento nesta iteração: x:%d y:%d z:%d" %(x, y, z))
+            print("AbsY:", self.absY)
 
-        #Calcula diferença entre o ponto central do drone e o ponto inicial(0, 80, 0)
-        self.pontoCentral.x += x
-        self.pontoCentral.y += y
-        self.pontoCentral.z += z
+            #Calcula diferença entre o ponto central do drone e o ponto inicial(0, 80, 0)
+            self.pontoCentral.x += x
+            self.pontoCentral.y += y
+            self.pontoCentral.z += z
 
-        #Atualiza limites seguros
-        self.northLimit -= self.dz
-        self.southLimit += self.dz
-        self.eastLimit -= self.dx
-        self.westLimit += self.dx
+            #Atualiza limites seguros
+            self.northLimit -= self.dz
+            self.southLimit += self.dz
+            self.eastLimit -= self.dx
+            self.westLimit += self.dx
 
-        #Converter (dx, dy, dz) em (frontal, normal, rotation)
-        self.frontalVector = f.convertXZIntoFrontalVector(self.dx, self.dz)
-        self.rotation = f.convertXZIntoRotationAngle(self.dx, self.dz)
+            #Converter (dx, dy, dz) em (frontal, normal, rotation)
+            self.frontalVector = f.convertXZIntoFrontalVector(self.dx, self.dz)
+            self.rotation = f.convertXZIntoRotationAngle(self.dx, self.dz)
 
-        if self.rotation != 0:
-            self.northAligned = False
+            if self.rotation != 0:
+                self.northAligned = False
 
         self.atualizaCombustivel()
 
@@ -113,6 +113,8 @@ class Drone:
         #Conseiderando que deixar o drone em queda livre o faça cair 1dm/unidade de tempo
         elif self.dy < -1:
             self.energy += self.dy
+
+        print("Energy:", self.energy)
 
         #Se o drone ficar sem combustivel
         if self.energy <= 0:
@@ -154,7 +156,7 @@ class Drone:
             self.westLimit = fuelLimit
 
     def addPontos(self, pontos):
-        print("addPontos")
+        print("\naddPontos")
 
         for x in range(15):
             for z in range(15):
@@ -180,12 +182,12 @@ class Drone:
         if self.zoom > 1:
             self.interpolaPontos()
 
-        #Remove pontos muito distantes (maxDist = +- 27)
+        #Remove pontos muito distantes (maxDist = +- 20)
         for p in self.mapa:
             deltaX = self.pontoCentral.x - p.x
             deltaZ = self.pontoCentral.z - p.z
 
-            if deltaX < -27 or deltaX > 27 or deltaZ < -27 or deltaZ > 27:
+            if deltaX < -20 or deltaX > 20 or deltaZ < -20 or deltaZ > 20:
                 self.mapa.pop(self.mapa.index(p))
 
         #Ordena pontos do mapa do drone
@@ -205,34 +207,34 @@ class Drone:
 
             #Tentar reduzir a quantidade de interpolações!
             #Válido aumentar a distancia mínima entre os PAs de interpolação
-            if (deltaX < 2 or deltaX > -2) and (deltaZ < 2 or deltaZ > -2):
-                print("shouldnt:", deltaX, deltaZ)
+            if (deltaX >= 2 or deltaX <= -2) and (deltaZ <= 2 or deltaZ >= -2):
+                pb = Ponto(0, -1, 0)
+                pc = Ponto(0, -1, 0)
+                pd = Ponto(0, -1, 0)
 
-            pb = Ponto(0, -1, 0)
-            pc = Ponto(0, -1, 0)
-            pd = Ponto(0, -1, 0)
+                #Procura pelos outros pontos(b, c, d) p/ interpolar
+                for proc in self.mapa:
+                    if proc.x == pa.x + self.zoom and proc.z == pa.z and pb.y == -1:
+                        pb = proc
+                    if proc.x == pa.x and proc.z == pa.z + self.zoom and pc.y == -1:
+                        pc = proc
+                    if proc.x == pa.x + self.zoom and proc.z == pa.z + self.zoom and pd.y == -1:
+                        pd = proc
 
-            #Procura pelos outros pontos(b, c, d) p/ interpolar
-            for proc in self.mapa:
-                if proc.x == pa.x + self.zoom and proc.z == pa.z and pb.y == -1:
-                    pb = proc
-                if proc.x == pa.x and proc.z == pa.z + self.zoom and pc.y == -1:
-                    pc = proc
-                if proc.x == pa.x + self.zoom and proc.z == pa.z + self.zoom and pd.y == -1:
-                    pd = proc
+                #Encontrou os pontos necessários
+                if pb.y > -1 and pc.y > -1 and pd.y > -1:
+                    interpList = interpolate(pa, pb, pc, pd)
 
-            #Encontrou os pontos necessários
-            if pb.y > -1 and pc.y > -1 and pd.y > -1:
-                interpList = interpolate(pa, pb, pc, pd)
+                    #Procura se esse ponto já existe no mapa
+                    for ponto in interpList:
+                        matches = [fp for fp in self.mapa if fp.x == ponto.x and fp.z == ponto.z]
+                        auxMatches = [fp for fp in auxMap if fp.x == ponto.x and fp.z == ponto.z]
 
-                #Procura se esse ponto já existe no mapa
-                for ponto in interpList:
-                    matches = [fp for fp in self.mapa if fp.x == ponto.x and fp.z == ponto.z]
-                    auxMatches = [fp for fp in auxMap if fp.x == ponto.x and fp.z == ponto.z]
+                        #Verifica se esse ponto já foi mapeado antes
+                        if len(matches) == 0 and len(auxMatches) == 0:
+                            auxMap.append(Ponto(ponto.x, ponto.y, ponto.z))
 
-                    #Verifica se esse ponto já foi mapeado antes
-                    if len(matches) == 0 and len(auxMatches) == 0:
-                        auxMap.append(Ponto(ponto.x, ponto.y, ponto.z))
+            prevPoint = pa
 
         self.mapa.extend(auxMap)
 
@@ -349,16 +351,23 @@ class Drone:
         #De acordo com o zoom, reduz altitude
         y = (- self.absY + cMed) / self.zoom
 
-        self.moveBy(x, int(y), z)
+        self.moveBy(x, int(round(y)), z)
 
-        self.zoom -= 1
+        if self.northAligned == True:
+            self.zoom -= 1
+
         if self.zoom == 0:
             self.zoom += 3 # zoom não pode ser 0, ele encerra erradamente, pousando no mesmo espaço.
 
         return self.sendPayload(payload)
 
     def testePouso(self, payload):
-        # print("TestePouso")
+        print("TestePouso")
+
+        if self.northAligned == False:
+            print("Realign first!")
+            self.moveBy(0, 0, 0)
+            return self.sendPayload(payload)
 
         #Trens de pouso
         pa = Ponto(0, -1, 0)
@@ -370,11 +379,11 @@ class Drone:
             for z in range(-self.southLimit, self.northLimit):
                 #Procura pontos para cada trem de pouso
                 for fp in self.mapa:
-                    if fp.x == 3 + x + self.pontoCentral.x and self.z == 3 + z + self.pontoCentral.z:
+                    if fp.x == 3 + x + self.pontoCentral.x and fp.z == 3 + z + self.pontoCentral.z:
                         pa = fp
-                    elif fp.x == -2 + x + self.pontoCentral.x and self.z == 0 + z + self.pontoCentral.z:
+                    elif fp.x == -2 + x + self.pontoCentral.x and fp.z == 0 + z + self.pontoCentral.z:
                         pb = fp
-                    elif fp.x == 2 + x + self.pontoCentral.x and self.z == 0 + z + self.pontoCentral.z:
+                    elif fp.x == 2 + x + self.pontoCentral.x and fp.z == 0 + z + self.pontoCentral.z:
                         pc = fp
 
                 #Calcula desnível entre trens de pouso
@@ -385,12 +394,17 @@ class Drone:
 
                     #Tolera um pouco de desnível
                     if -1 <= deltaAB <= 1 and -1 <= deltaAC <= 1 and -1 <= deltaBC <= 1:
+                        print("pa.y: %d, pb.y: %d, pc.y: %d" % (pa.y, pb.y, pc.y))
                         self.moveBy(x, -self.absY + pb.y + 3, z)
                         self.islanding = True
                         return self.sendPayload(payload)
 
-        #Caso não tenha dado pra pousar
-        self.zoom += 1
+        #Caso não tenha como pousar
+        if self.zoom < 5:
+            self.zoom += 1
+
+        print("Not yet!")
+        print("Zoom: ", self.zoom)
         self.moveBy(randint(-self.westLimit, self.eastLimit), 10, randint(-self.southLimit, self.northLimit))
         return self.sendPayload(payload)
 
