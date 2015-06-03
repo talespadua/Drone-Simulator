@@ -113,6 +113,27 @@ def get_drone(drone_list, drone_id):
     return None
 
 
+def get_drone_model_tcp():
+    s = socket.socket()         # Create a socket object
+    host = socket.gethostname() # Get local machine name
+    port = 12345                 # Reserve a port for your service.
+    s.bind((host, port))        # Bind to the port
+    file = open('DroneModel.x3d', 'wb')
+    s.listen(5)                 # Now wait for client connection.
+    while True:
+        c, addr = s.accept()     # Establish connection with client.
+        print('Got connection from', addr)
+        print("Receiving...")
+        l = c.recv(1024)
+        while (l):
+            print("Receiving...")
+            file.write(l)
+            l = c.recv(1024)
+        file.close()
+        print("Done Receiving")
+        c.close()                # Close the connection
+
+
 #keep talking with the drone
 def begin_listening(sock, port, server_map):
     print("Server is listening on port " + port.__str__() + "...")
@@ -145,6 +166,22 @@ def begin_listening(sock, port, server_map):
 
         drone = get_drone(drone_list, drone_id)
 
+        msg_type = get_message_type(data)
+        msg_id = get_message_id(data)
+
+        if msg_type == 1:
+            print("Drone with ID " + drone.drone_id + "landed")
+            drone_list.remove(drone)
+            msg_type = 3
+            payload.add_drone_id(drone_id)
+            payload.add_message_type(msg_type)
+            payload.add_message_id(msg_id)
+
+            sock.sendto(payload.payload, drone.addr)
+            continue
+
+        drone_port = get_port_from_payload(data)
+
         if drone is None:
             pos_x = randint(10, server_map.x_size - 11)
             pos_y = 80
@@ -152,12 +189,14 @@ def begin_listening(sock, port, server_map):
             drone = DroneInfo(drone_id, pos_x, pos_y, pos_z, addr)
             drone_list.append(drone)
 
-        msg_type = get_message_type(data)
+            payload.add_drone_id(drone.drone_id)
+            payload.add_message_id(msg_id)
+            payload.add_message_type(4)
+            sock.sendto(payload.payload, drone.addr)
+            get_drone_model_tcp()
+            continue
 
-        msg_id = get_message_id(data)
-        drone_port = get_port_from_payload(data)
         zoom = get_zoom_from_payload(data)
-
         #Last drone movement
         normal_mov = get_normal_from_payload(data)
         frontal_mov = get_frontal_from_payload(data)
@@ -183,18 +222,7 @@ def begin_listening(sock, port, server_map):
             sock.sendto(payload.payload, drone.addr)
             continue
 
-        if msg_type == 1:
-            print("Drone with ID " + drone.drone_id + "landed")
-            drone_list.remove(drone)
-            msg_type = 3
-            payload.add_drone_id(drone_id)
-            payload.add_message_type(msg_type)
-            payload.add_message_id(msg_id)
-
-            sock.sendto(payload.payload, drone.addr)
-            continue
-
-        #TODO: impplement drone-to-drone communication
+        #TODO: implement drone-to-drone communication
         map_str = parse_drone_map_to_string(drone.pos_x, drone.pos_z, zoom, server_map)
 
         payload.add_drone_id(drone_id)

@@ -111,6 +111,26 @@ def parse_map_from_server(server_map):
     return map_matrix
 
 
+def transfer_drone_model():
+    s = socket.socket()         # Create a socket object
+    host = socket.gethostname() # Get local machine name
+    port = 12345                 # Reserve a port for your service.
+
+    s.connect((host, port))
+    file = open('DroneModel.x3d', 'rb')
+    print('Sending...')
+    l = file.read(1024)
+    while (l):
+        print('Sending...')
+        s.send(l)
+        l = file.read(1024)
+    file.close()
+    print("Done Sending")
+    s.shutdown(socket.SHUT_WR)
+    print(s.recv(1024))
+    s.close()
+
+
 def begin_streaming(s, host, port, drone):
     #first request
     drone_id = drone.drone_id
@@ -123,14 +143,14 @@ def begin_streaming(s, host, port, drone):
 
     payload = ClientPayload()
 
-    payload.add_port(port)
+    payload.add_port(drone.port)
     payload.add_drone_id(drone_id)
 
     payload.add_msg_id(msg_id)
     payload.add_msg_type(msg_type)
     payload.add_zoom(zoom)
 
-    #0, 0, 0 is initial result
+    #0, 0, 0 are initial values
     payload.add_drone_normal_vector(0)
     payload.add_drone_frontal_vector(0)
     payload.add_drone_rotation(0)
@@ -145,10 +165,12 @@ def begin_streaming(s, host, port, drone):
             reply = d[0]
             addr = d[1]
 
-            #TODO: make sure msg type is checked first
-            server_map = get_map_from_payload(reply)
-
             msg_type = get_message_type(reply)
+
+            if msg_type == 4:
+                transfer_drone_model()
+                msg_type = 0
+
             rcv_msg_id = get_message_id(reply)
 
             #TODO: treat case where msg id are not the same
@@ -161,12 +183,16 @@ def begin_streaming(s, host, port, drone):
                 wind_binormal = get_binormal_wind(reply)
                 first_round = False
 
+            #TODO: make sure msg type is checked first
+            server_map = get_map_from_payload(reply)
+
+            #TODO: create timeout for response
             gps_posx = get_gps_pos_x(reply)
             gps_posz = get_gps_pos_z(reply)
 
             print("Server reply:")
             print("Drone id: "+str(drone.drone_id))
-            print("Drone zoom: "+str(drone.zoom))
+            print("Msg type: "+str(msg_type))
 
             map_matrix = parse_map_from_server(server_map)
             print(map_matrix)

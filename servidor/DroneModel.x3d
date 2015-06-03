@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "http://www.web3d.org/specifications/x3d-3.3.dtd">
+<X3D profile='Interactive' version='3.3'  xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation =' http://www.web3d.org/specifications/x3d-3.3.xsd '>
+<head>
+    <meta name='title' content='Dota.x3d'/>
+    <meta name='description' content='A map generated for drone simulation.'/>
+    <meta name='creator' content='GabrielNopper'/>
+    <meta name='organization' content='Centro Universitário Senac'/>
+    <meta name='created' content='April 9, 2015'/>
+    <meta name='modified' content='10 April 2015'/>
+    <meta name='identifier' content='NULL'/>
+    <meta name='generator' content='X3D-Edit 3.3, https://savage.nps.edu/X3D-Edit'/>
+    <meta name='license' content='NULL'/>
+</head>
+<Scene>
+    <Background skyColor='1 1 1'/>
+    <Viewpoint description='Overhead View' orientation='1 0 0 -1.57' position='5 15 0'/>
+    <Viewpoint DEF='DefaultView' description='ElevationGrid example' position='0 0.2 6'/>
+    <Transform translation='-3 0 -3'>
+        <Shape DEF='ExampleElevationGridShape'>
+        <ElevationGrid solid='false' xDimension='10' zDimension='10' height='0 0 0 0 0 0 0 0 0 0
+        0 0 0 1 2 2 1 0 0 0
+        0 0 1 2 3 3 2 1 0 0
+        0 1 2 3 4 4 3 2 1 0
+        0 2 3 4 5 5 4 3 2 0
+        0 2 3 4 5 5 4 3 2 0
+        0 1 2 3 4 4 3 2 1 0
+        0 0 1 2 3 3 2 1 0 0
+        0 0 0 1 2 2 1 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        '/>
+        <Appearance DEF='DiffuseRedAppearance'>
+            <Material diffuseColor='0.9 0.1 0.1'/>
+        </Appearance>
+        </Shape>
+    </Transform>
+    <Transform translation='-3 0 -3'>
+        <Shape DEF='ExampleElevationGridShape2'>
+        <ElevationGrid solid='false' xDimension='10' zDimension='10' height='0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        0 0 0 -3 0 0 0 0 0 0
+        0 0 0 0 0 0 0 -3 0 0
+        0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 -3 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0
+        '/>
+        <Appearance DEF='DiffuseRedAppearance'>
+            <Material diffuseColor='0.9 0.1 0.1'/>
+        </Appearance>
+        </Shape>
+    </Transform>
+</Scene>
+</X3D> 
