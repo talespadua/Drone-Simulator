@@ -9,7 +9,7 @@ from drone import Drone #WHAT
 
 def get_config(config_file):
     config = configparser.RawConfigParser()
-    config.read(config_file)
+    config.read(config_file, encoding='utf-8')
     return config
 
 
@@ -21,6 +21,17 @@ def create_socket():
     except socket.error as msg:
         print('Failed to create socket. Error Code : ' + str(msg) + ' Message ' + str(msg))
         sys.exit()
+
+
+def bind_socket(sock, host, port):
+    # Bind socket to local host and port
+    try:
+        sock.bind((host, port))
+    except socket.error as msg:
+        print('Bind failed. Error Code : ' + str(msg) + ' Message ' + str(msg))
+        return False
+    print('Socket bind complete')
+    return True
 
 
 def get_drone_id_from_payload(payload):
@@ -154,8 +165,8 @@ def begin_streaming(s, host, port, drone):
             gps_posz = get_gps_pos_z(reply)
 
             print("Server reply:")
-            print("Drone id: "+str(drone_id))
-            print("Drone zoom: "+str(zoom))
+            print("Drone id: "+str(drone.drone_id))
+            print("Drone zoom: "+str(drone.zoom))
 
             map_matrix = parse_map_from_server(server_map)
             print(map_matrix)
@@ -182,14 +193,25 @@ def main():
     config = get_config("settings.cfg")
 
     host = config.get('settings', 'host')
-    port = int(config.get('settings', 'port'))
+    drone_port = int(config.get('settings', 'port_seed'))
+    server_port = int(config.get('settings', 'server_port'))
 
     s = create_socket()
 
-    drone = Drone()
-    drone.port = port
+    while True:
+        if bind_socket(s, host, drone_port):
+            break
+        else:
+            drone_port += 1
 
-    begin_streaming(s, host, port, drone)
+    config.set('settings', 'port_seed', str(drone_port+1))
+    with open("settings.cfg", 'w') as configfile:
+        config.write(configfile)
+
+    drone = Drone()
+    drone.port = drone_port
+
+    begin_streaming(s, host, server_port, drone)
 
     s.close()
 

@@ -4,12 +4,9 @@ from random import randint
 import math
 
 # Este método prepara uma matriz 15x15 dada a posição de um drone, e seu zoom. Ele devolve a matriz.
-def getArrayToDrone(sentX, sentZ, zoom, mapa):
+def getArrayToDrone(sentX, sentZ, zoom, mapa, gridSizeX, gridSizeZ):
     baseX = sentX - 7 * zoom;
     baseZ = sentZ - 7 * zoom;
-
-    gridSizeX = 50  # Este valor define o tamanho da matriz usada. Se um ponto exceder este valor na matriz original, devolve 255. Variavel global.
-    gridSizeZ = 50
 
     returningArray = np.zeros((15, 15))
     for i in range(0, 15):
