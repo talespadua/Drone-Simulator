@@ -8,6 +8,7 @@ class Ponto:
         self.x = x
         self.y = y
         self.z = z
+        self.energy = 5000
 
 class Drone:
     def __init__(self):
@@ -327,6 +328,7 @@ class Drone:
         #Por hora, usando frontal=z, binormal=y, normal=x
         payload.add_drone_normal_vector(self.dy)
         payload.add_drone_frontal_vector(f.convertXZIntoFrontalVector(self.dx, self.dz))
+        self.energy -= f.convertXZIntoFrontalVector(self.dx, self.dz)
         payload.add_drone_rotation(f.convertXZIntoRotationAngle(self.dx, self.dz))
 
         if self.islanding:

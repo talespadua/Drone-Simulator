@@ -74,7 +74,7 @@ def get_zoom_from_payload(payload):
 
 
 def get_normal_from_payload(payload):
-    x_pos = struct.unpack('>i', payload[8:12])[0]
+    x_pos = struct.unpack('>i', payload[16:20])[0]
     return x_pos
 
 
@@ -84,7 +84,7 @@ def get_frontal_from_payload(payload):
 
 
 def get_rotation_from_payload(payload):
-    y_pos = struct.unpack('>i', payload[16:20])[0]
+    y_pos = struct.unpack('>i', payload[8:12])[0]
     return y_pos
 
 

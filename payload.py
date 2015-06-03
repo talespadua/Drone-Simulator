@@ -80,13 +80,14 @@ class ClientPayload:
     def add_zoom(self, zoom):
         struct.pack_into('B', self.payload, 7, int(zoom))
 
-    def add_drone_normal_vector(self, value):
+
+    def add_drone_rotation(self, value):
         struct.pack_into('>i', self.payload, 8, int(value))
 
     def add_drone_frontal_vector(self, value):
         struct.pack_into('>i', self.payload, 12, int(value))
 
-    def add_drone_rotation(self, value):
+    def add_drone_normal_vector(self, value):
         struct.pack_into('>i', self.payload, 16, int(value))
 
     def get_payload(self):
