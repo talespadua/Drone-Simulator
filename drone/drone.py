@@ -54,6 +54,22 @@ class Drone:
 
 
     def moveBy(self, x, y, z):
+        #Atualiza tempo de voo
+        self.flyingTime += 1
+
+        #Caso não esteja alinhado com o norte do mapa, realinhar
+        if self.northAligned == False:
+            self.rotation = -self.rotation
+            self.dx = 0
+            self.dy = 0
+            self.dz = 0
+            self.northAligned == True
+
+            self.atualizaCombustivel()
+
+            return
+
+        #Caso esteja alinhado com o norte do mapa...
         self.dx = x
         self.dy = y
         self.dz = z
@@ -73,9 +89,16 @@ class Drone:
         self.eastLimit -= self.dx
         self.westLimit += self.dx
 
-        #Atualiza tempo de voo
-        self.flyingTime += 1
+        #Converter (dx, dy, dz) em (frontal, normal, rotation)
+        self.frontalVector = f.convertXZIntoFrontalVector(self.dx, self.dz)
+        self.rotation = f.convertXZIntoRotationAngle(self.dx, self.dz)
 
+        if self.rotation != 0:
+            self.northAligned = False
+
+        self.atualizaCombustivel()
+
+    def atualizaCombustivel(self):
         #Combustível
         self.energy -= f.convertXZIntoFrontalVector(self.dx, self.dz)
 
@@ -377,8 +400,8 @@ class Drone:
 
         #Por hora, usando frontal=z, binormal=y, normal=x
         payload.add_drone_normal_vector(self.dy)
-        payload.add_drone_frontal_vector(f.convertXZIntoFrontalVector(self.dx, self.dz))
-        payload.add_drone_rotation(f.convertXZIntoRotationAngle(self.dx, self.dz))
+        payload.add_drone_frontal_vector(self.frontalVector)
+        payload.add_drone_rotation(self.rotation)
 
         if self.islanding:
             payload.add_msg_type(1)
