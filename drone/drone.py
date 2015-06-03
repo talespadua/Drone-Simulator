@@ -9,6 +9,7 @@ class Ponto:
         self.y = y
         self.z = z
 
+
 class Drone:
     def __init__(self):
         #todo: implement fuel and fuel related function
@@ -16,7 +17,8 @@ class Drone:
         self.dy = 0
         self.dz = 0
         self.absY = 80
-
+        self.energy = 5000
+        
         self.bsRaio = 5
         self.pernas = [[8, 2, 8], [3, 2, 5], [7, 2, 5]]
 
@@ -97,9 +99,7 @@ class Drone:
             self.eastLimit = 0
 
     def addPontos(self, pontos):
-        setores = list()
-        for i in range(5):
-            setores.append(list())
+        print("addPontos")
 
         for x in range(15):
             for z in range(15):
@@ -121,18 +121,17 @@ class Drone:
                         self.mapa.remove(matches[0])
                         self.mapa.append(p)
 
+        #Interpola pontos e adiciona no mapa, caso zoom > 1:
+        if self.zoom > 1:
+            self.interpolaPontos()
+
         #Remove pontos muito distantes (maxDist = +- 27)
         for p in self.mapa:
             deltaX = self.pontoCentral.x - p.x
             deltaZ = self.pontoCentral.z - p.z
 
             if deltaX < -27 or deltaX > 27 or deltaZ < -27 or deltaZ > 27:
-                print("removing: ", p.x, p.y, p.z)
                 self.mapa.pop(self.mapa.index(p))
-
-        #Interpola pontos e adiciona no mapa, caso zoom > 1:
-        if self.zoom > 1:
-            self.interpolaPontos()
 
         #Ordena pontos do mapa do drone
         self.mapa.sort(key = lambda ponto: (ponto.x, ponto.z))
@@ -140,8 +139,10 @@ class Drone:
         self.setSafeLimits(pontos)
 
     def interpolaPontos(self):
+        print("interpolaPontos")
+        auxMap = list()
+
         for pa in self.mapa:
-            auxMap = list()
             pb = Ponto(0, -1, 0)
             pc = Ponto(0, -1, 0)
             pd = Ponto(0, -1, 0)
@@ -162,14 +163,17 @@ class Drone:
                 #Procura se esse ponto já existe no mapa
                 for ponto in interpList:
                     matches = [fp for fp in self.mapa if fp.x == ponto.x and fp.z == ponto.z]
+                    auxMatches = [fp for fp in auxMap if fp.x == ponto.x and fp.z == ponto.z]
 
                     #Verifica se esse ponto já foi mapeado antes
-                    if len(matches) == 0:
-                        auxMap.append(ponto)
+                    if len(matches) == 0 and len(auxMatches) == 0:
+                        auxMap.append(Ponto(ponto.x, ponto.y, ponto.z))
 
         self.mapa.extend(auxMap)
 
     def chooseDirection(self, payload):
+        print("chooseDirection")
+
         #Verifica se vai ou não comparar vento
         if self.flyingTime < 2:
             self.moveBy(0, 0, 0)
@@ -327,6 +331,7 @@ class Drone:
         #Por hora, usando frontal=z, binormal=y, normal=x
         payload.add_drone_normal_vector(self.dy)
         payload.add_drone_frontal_vector(f.convertXZIntoFrontalVector(self.dx, self.dz))
+        self.energy -= f.convertXZIntoFrontalVector(self.dx, self.dz)
         payload.add_drone_rotation(f.convertXZIntoRotationAngle(self.dx, self.dz))
 
         if self.islanding:

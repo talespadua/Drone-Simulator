@@ -74,7 +74,7 @@ def get_zoom_from_payload(payload):
 
 
 def get_normal_from_payload(payload):
-    x_pos = struct.unpack('>i', payload[8:12])[0]
+    x_pos = struct.unpack('>i', payload[16:20])[0]
     return x_pos
 
 
@@ -84,7 +84,7 @@ def get_frontal_from_payload(payload):
 
 
 def get_rotation_from_payload(payload):
-    y_pos = struct.unpack('>i', payload[16:20])[0]
+    y_pos = struct.unpack('>i', payload[8:12])[0]
     return y_pos
 
 
@@ -212,7 +212,7 @@ def begin_listening(sock, port, server_map):
         drone.pos_z += drone_pos[1]
 
         if collision == -1:
-            print("Drone with ID " + drone.drone_id + "Collided")
+            print("Drone with ID " + str(drone.drone_id) + "Collided")
             drone_list.remove(drone)
             msg_type = 3
             payload.add_drone_id(drone_id)

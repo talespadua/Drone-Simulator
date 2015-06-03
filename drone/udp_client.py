@@ -195,7 +195,7 @@ def begin_streaming(s, host, port, drone):
             print("Msg type: "+str(msg_type))
 
             map_matrix = parse_map_from_server(server_map)
-            print(map_matrix)
+            #print(map_matrix)
 
             drone.addPontos(map_matrix)
 
