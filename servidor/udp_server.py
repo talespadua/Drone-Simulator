@@ -3,12 +3,12 @@ import sys
 import configparser
 from bs4 import BeautifulSoup
 from Map import Map
-from payload import ServerPayload, PayloadProperties
+from payload import ServerPayload
 import functions as f
 import struct
 from random import randint
 from servidor.DroneInfo import DroneInfo
-
+import math
 
 #Setting up config parser
 def get_config(config_file):
@@ -134,13 +134,31 @@ def get_drone_model_tcp(drone_model_number):
         s.close()
         return
 
-def check_area_collision(drone_one, drone_two)_
+
+def check_area_collision(do, dt):
+    dist = math.sqrt((do.pos_x - dt.pos_x)**2 + (do.pos_y - dt.pos_y)**2 + (do.pos_z - dt.pos_z)**2)
+    return dist
 
 
-def check_drone_proximity(drone_list):
-    starting_point = 1
-    list_len = len(drone_list)
-    drone = drone_list[0]
+# def check_drone_proximity(drone, drone_list):
+#     list_len = len(drone_list)
+#     if list_len < 2:
+#         return None
+#
+#     for d in drone_list:
+#         dist = check_area_collision(drone, d)
+#         if dist < 150:
+#
+#     starting_point = 0
+#     while starting_point < list_len - 1:
+#         i = starting_point + 1
+#         while i < list_len:
+#             if check_area_collision(drone_list[starting_point], drone_list[i]):
+#                 return drone_list[starting_point], drone_list[i]
+#             i += 1
+#         starting_point += 1
+#     return None
+
 
 #keep talking with the drone
 def begin_listening(sock, port, server_map, config):
@@ -201,7 +219,9 @@ def begin_listening(sock, port, server_map, config):
             payload.add_drone_id(drone.drone_id)
             payload.add_message_id(msg_id)
             payload.add_message_type(4)
+
             sock.sendto(payload.payload, drone.addr)
+
             get_drone_model_tcp(drone_model_number)
 
             payload.add_message_type(0)
@@ -229,7 +249,10 @@ def begin_listening(sock, port, server_map, config):
         drone.pos_x += drone_pos[0]
         drone.pos_z += drone_pos[1]
 
-
+        # prox_drones = check_drone_proximity(drone, drone_list)
+        #
+        # if prox_drones is not None:
+        #     msg_type = 2
 
         if collision == -1:
             print("Drone with ID " + str(drone.drone_id) + "Collided")

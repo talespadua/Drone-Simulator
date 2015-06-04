@@ -3,8 +3,8 @@ import sys
 import struct
 import numpy as np
 import configparser
-from payload import ClientPayload, PayloadProperties
-from drone import Drone #WHAT
+from payload import ClientPayload
+from drone import Drone  # WHAT
 
 
 def get_config(config_file):
@@ -37,7 +37,7 @@ def bind_socket(sock, host, port):
 
 def get_drone_id_from_payload(payload):
     drone_id = struct.unpack('B', payload[0:1])[0]
-    print("Drone ID: %d" %(drone_id))
+    print("Drone ID: %d" % (drone_id))
     return drone_id
 
 
@@ -89,6 +89,7 @@ def get_map_from_payload(payload):
 
     return server_map
 
+
 def parse_map_from_server(server_map):
     map_matrix = np.zeros((15, 15))
     type_matrix = np.zeros((15, 15))
@@ -96,7 +97,7 @@ def parse_map_from_server(server_map):
     i = 0
     j = 0
     for c in server_map:
-        #ignoring first byte
+        # ignoring first byte
         if index % 2 == 0:
             type_matrix.itemset((i, j), int(c))
             index += 1
@@ -112,10 +113,18 @@ def parse_map_from_server(server_map):
     return map_matrix
 
 
+def get_another_drone_positions(payload):
+    pos_x = struct.unpack('>i', payload[4:8])[0]
+    pos_y = struct.unpack('>i', payload[8:12])[0]
+    pos_z = struct.unpack('>i', payload[12:16])[0]
+
+    return pos_x, pos_y, pos_z
+
+
 def transfer_drone_model():
-    s = socket.socket()         # Create a socket object
-    host = socket.gethostname() # Get local machine name
-    port = 12345                 # Reserve a port for your service.
+    s = socket.socket()  # Create a socket object
+    host = socket.gethostname()  # Get local machine name
+    port = 12345  # Reserve a port for your service.
 
     s.connect((host, port))
     file = open('DroneModel.x3d', 'rb')
@@ -132,7 +141,7 @@ def transfer_drone_model():
 
 
 def begin_streaming(s, host, port, drone):
-    #first request
+    # first request
     drone_id = drone.drone_id
     zoom = drone.zoom
     msg_id = 0
@@ -150,7 +159,7 @@ def begin_streaming(s, host, port, drone):
     payload.add_msg_type(msg_type)
     payload.add_zoom(zoom)
 
-    #0, 0, 0 are initial values
+    # 0, 0, 0 are initial values
     payload.add_drone_normal_vector(0)
     payload.add_drone_frontal_vector(0)
     payload.add_drone_rotation(0)
@@ -166,7 +175,7 @@ def begin_streaming(s, host, port, drone):
             addr = d[1]
 
             msg_type = get_message_type(reply)
-             #TODO: make sure msg type is checked first
+            #TODO: make sure msg type is checked first
             if msg_type == 4:
                 transfer_drone_model()
                 msg_type = 0
@@ -174,8 +183,15 @@ def begin_streaming(s, host, port, drone):
                 reply = d[0]
                 addr = d[1]
 
-            if msg_type == 3:
+            elif msg_type == 3:
                 sys.exit()
+
+            elif msg_type == 2:
+                #TODO: do something with this useless info
+                other_drone_pos = get_another_drone_positions(payload)  # this is a 3 member tuple (xpos, ypos, zpos)
+                msg_type = 0
+                payload.add_msg_type(msg_type)
+                continue
 
             rcv_msg_id = get_message_id(reply)
 
@@ -191,8 +207,8 @@ def begin_streaming(s, host, port, drone):
             gps_posz = get_gps_pos_z(reply)
 
             print("Server reply:")
-            print("Drone id: "+str(drone.drone_id))
-            print("Msg type: "+str(msg_type))
+            print("Drone id: " + str(drone.drone_id))
+            print("Msg type: " + str(msg_type))
 
             map_matrix = parse_map_from_server(server_map)
             #print(map_matrix)
@@ -230,7 +246,7 @@ def main():
         else:
             drone_port += 1
 
-    config.set('settings', 'port_seed', str(drone_port+1))
+    config.set('settings', 'port_seed', str(drone_port + 1))
     with open("settings.cfg", 'w') as configfile:
         config.write(configfile)
 
@@ -240,6 +256,7 @@ def main():
     begin_streaming(s, host, server_port, drone)
 
     s.close()
+
 
 if __name__ == "__main__":
     main()

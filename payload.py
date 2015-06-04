@@ -40,11 +40,7 @@ class ServerPayload():
         struct.pack_into('B', self.payload, 23, int(zoom))
 
     def add_drone_map(self, map):
-        #sherolero = bytearray(map, "utf-8")
-        #struct.pack_into('450s', self.payload, 61, sherolero)
-
         count = 61
-
         for val in map:
             struct.pack_into('B', self.payload, count, int(val))
             count += 1
@@ -80,7 +76,6 @@ class ClientPayload:
     def add_zoom(self, zoom):
         struct.pack_into('B', self.payload, 7, int(zoom))
 
-
     def add_drone_rotation(self, value):
         struct.pack_into('>i', self.payload, 8, int(value))
 
@@ -89,25 +84,6 @@ class ClientPayload:
 
     def add_drone_normal_vector(self, value):
         struct.pack_into('>i', self.payload, 16, int(value))
-
-    def get_payload(self):
-        return self.payload
-
-class DronePayload:
-    def __init__(self):
-        self.payload = bytearray(512)
-
-    def add_port(self, port):
-        struct.pack_into('>I', self.payload, 0, int(port))
-
-    def add_pos_x(self, drone_id):
-        struct.pack_into('>i', self.payload, 4, int(drone_id))
-
-    def add_pos_y(self, msg_id):
-        struct.pack_into('>i', self.payload, 8, int(msg_id))
-
-    def add_pos_z(self, msg_type):
-        struct.pack_into('>i', self.payload, 11, int(msg_type))
 
     def get_payload(self):
         return self.payload
